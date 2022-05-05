@@ -17,12 +17,13 @@
     <tbody>
     {% for category_word in category_words %}
     <tr>
-        <td>{{ category_word [3] }}</td>
-        <td>{{ category_word [4] }}</td>
-        <td>{{ category_word [8] }}</td>
+
+        <td><a href="/word/{{ category_word [0] }}">{{ category_word [3] }}</a></td>
+        <td><a href="/word/{{ category_word [0] }}">{{ category_word [4] }}</a></td>
+        <td><img src="/static/images/{{ category_word [8] }}"></td>
 
     </tr>
-    {% endfor %}}
+    {% endfor %}
     </tbody>
 </table>
 {% endblock %}

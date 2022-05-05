@@ -43,9 +43,9 @@ def category_list():
     cur = con.cursor()
     query = "SELECT * FROM categories"
     cur.execute(query)
-    category_list = cur.fetchall()
+    queried_categories = cur.fetchall()
     con.close()
-    return category_list
+    return queried_categories
 
 
 @app.route('/')
@@ -54,8 +54,17 @@ def render_homepage():
 
 
 @app.route('/full_dictionary')
-def render_full_dictionary_page():
-    return render_template('full_dictionary.html', logged_in=is_logged_in(), category_list=category_list())
+def render_full_dictionary():
+    con = create_connection(DB_NAME)
+
+    cur = con.cursor()
+    query = "SELECT * FROM words"
+    cur.execute(query)
+    fetched_words = cur.fetchall()
+
+    con.close()
+    return render_template('full_dictionary.html', logged_in=is_logged_in(), category_list=category_list(),
+                           category_words=fetched_words)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -133,6 +142,20 @@ def render_signup_page():
     if error is None:
         error = ""
     return render_template('signup.html', error=error, logged_in=is_logged_in(), category_list=category_list())
+
+
+@app.route('/word/<word_id>')
+def render_word(word_id):
+    con = create_connection(DB_NAME)
+
+    cur = con.cursor()
+    query = "SELECT * FROM words WHERE id = ?"
+    cur.execute(query, (word_id,))
+    queried_data = cur.fetchall()
+
+    con.close()
+    return render_template('word.html', logged_in=is_logged_in(), category_list=category_list(),
+                           word_data=queried_data)
 
 
 @app.route('/category/<cat_id>')

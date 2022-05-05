@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Maōri Dictionary | Word{% endblock %}
+
+
+{% block main %}
+<h2>{{ word_data[0][3] }} - {{ word_data[0][4] }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <td>Definition:</td>
+                <td>Quantity</td>
+            </tr>
+
+            <tr>
+                <td>Level:</td>
+                <td>Quantity</td>
+            </tr>
+
+            <tr>
+                <td>Date Added:</td>
+                <td>Quantity</td>
+            </tr>
+
+            <tr>
+                <td>Edited by:</td>
+                <td>Quantity</td>
+            </tr>
+        </thead>
+    </table>
+{% endblock %}
