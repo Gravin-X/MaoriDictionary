@@ -41,7 +41,7 @@ def is_logged_in():
 def category_list():
     con = create_connection(DB_NAME)
     cur = con.cursor()
-    query = "SELECT * FROM Category"
+    query = "SELECT * FROM categories"
     cur.execute(query)
     category_list = cur.fetchall()
     con.close()
@@ -135,16 +135,23 @@ def render_signup_page():
     return render_template('signup.html', error=error, logged_in=is_logged_in(), category_list=category_list())
 
 
-@app.route('/category/<id>')
-def render_category(id):
+@app.route('/category/<cat_id>')
+def render_category(cat_id):
     con = create_connection(DB_NAME)
-    cur = con.cursor()
-    query = "SELECT maori, english, image FROM Dictionary WHERE category_id = 1"
-    cur.execute(query, (id,))
-    category_words = cur.fetchall()
-    con.close()
-    return render_template('category.html', logged_in=is_logged_in(), category_list=category_list(), category_words=category_words)
 
+    cur = con.cursor()
+    query = "SELECT id, category_names FROM categories WHERE id = ?"
+    cur.execute(query, (cat_id,))
+    fetched_categories = cur.fetchall()
+
+    cur = con.cursor()
+    query = "SELECT * FROM words WHERE category_id = ?"
+    cur.execute(query, (cat_id,))
+    fetched_words = cur.fetchall()
+
+    con.close()
+    return render_template('category.html', logged_in=is_logged_in(), category_list=category_list(),
+                           category_data=fetched_categories, category_words=fetched_words)
 
 
 app.run(host='0.0.0.0', debug=True)

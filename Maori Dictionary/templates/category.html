@@ -4,14 +4,25 @@
 
 
 {% block main %}
+
 <table class="table">
+    <h2>{{ category_data[0][1] }}</h2>
     <thead>
         <tr>
-            <td>Maori</td>
-            <td>English</td>
-            <td>Image</td>
-            <td></td>
+            <th>Maori</th>
+            <th>English</th>
+            <th>Image</th>
         </tr>
     </thead>
+    <tbody>
+    {% for category_word in category_words %}
+    <tr>
+        <td>{{ category_word [3] }}</td>
+        <td>{{ category_word [4] }}</td>
+        <td>{{ category_word [8] }}</td>
+
+    </tr>
+    {% endfor %}}
+    </tbody>
 </table>
 {% endblock %}
