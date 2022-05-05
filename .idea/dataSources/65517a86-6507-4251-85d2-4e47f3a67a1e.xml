@@ -1363,6 +1363,7 @@
     <column id="494" parent="167" name="user_id">
       <Position>2</Position>
       <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
     </column>
     <column id="495" parent="167" name="category_id">
       <Position>3</Position>
@@ -1396,5 +1397,10 @@
       <ColNames>id</ColNames>
       <Primary>1</Primary>
     </key>
+    <foreign-key id="503" parent="167">
+      <ColNames>user_id</ColNames>
+      <RefTableName>user_details</RefTableName>
+      <RefColNames>id</RefColNames>
+    </foreign-key>
   </database-model>
 </dataSource>

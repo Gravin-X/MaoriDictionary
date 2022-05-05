@@ -9,6 +9,7 @@
 </head>
 
 <body>
+<img src="static/images/images.jpg" class="max"; style="height:1px"; alt="">
 <div id="container">
 
     <header>
@@ -27,7 +28,7 @@
             {% if logged_in %}
                 <a href="/logout">Log out</a>
             {% else %}
-            <li><a href="login">Log in</a></li>
+            <li><a href="/login">Log in</a></li>
             {% endif %}
         <li>---------------------</li>
             {% for category in category_list %}

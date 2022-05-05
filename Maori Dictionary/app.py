@@ -177,4 +177,28 @@ def render_category(cat_id):
                            category_data=fetched_categories, category_words=fetched_words)
 
 
+@app.route('/add_category', methods=['GET', 'POST'])
+def render_add_category_page():
+    if request.method == 'POST':
+        print(request.form)
+        fname = request.form.get('fname')
+        lname = request.form.get('lname')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        password2 = request.form.get('password2')
+
+        con = create_connection(DB_NAME)
+
+        query = "INSERT INTO user_details (first_name, last_name, email, password) VALUES(?,?,?,?)"
+
+        cur = con.cursor()
+
+        cur.execute(query, (fname, lname, email, hashed_password))  # executes the query
+        con.commit()
+        con.close()
+        return redirect('/')
+
+    return render_template('add_category.html', logged_in=is_logged_in(), category_list=category_list())
+
+
 app.run(host='0.0.0.0', debug=True)
