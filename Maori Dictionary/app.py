@@ -48,7 +48,6 @@ def category_list():
     con.close()
     return queried_categories
 
-
 @app.route('/')
 def render_homepage():
     return render_template('home.html', logged_in=is_logged_in(), category_list=category_list())
@@ -202,17 +201,45 @@ def render_add_word_page():
         current_datetime = datetime.utcnow()
         current_timetuple = current_datetime.utctimetuple()
         current_timestamp = calendar.timegm(current_timetuple) * 1000
+
         try:
-            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, current_timestamp,
+            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, current_datetime,
                                 category))
         except ValueError:
             return redirect('/')
 
         con.commit()
+
         con.close()
         return redirect('/')
 
-    return render_template('add_word.html', logged_in=is_logged_in(), category_list=category_list())
+    return render_template('add_word.html', logged_in=is_logged_in(), category_list=category_list(),
+                           category_data=category_list())
+
+
+@app.route('/add_category', methods=['GET', 'POST'])
+def render_add_category_page():
+    if not is_logged_in():
+        return redirect('/?error=Not+logged+in')
+    if request.method == "POST":
+        print(request.form)
+        name = request.form.get('category_name')
+
+        con = create_connection(DB_NAME)
+
+        query = "INSERT INTO categories(id, category_names) VALUES(NULL,?)"
+
+        cur = con.cursor()
+
+        try:
+            cur.execute(query, (name,))
+        except ValueError:
+            return redirect('/')
+        con.commit()
+        con.close()
+        return redirect('/')
+
+    return render_template('add_category.html', category_list=category_list(), logged_in=is_logged_in())
 
 
 app.run(host='0.0.0.0', debug=True)
