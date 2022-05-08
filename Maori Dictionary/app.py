@@ -3,6 +3,7 @@ import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 from datetime import datetime
+import calendar
 import smtplib, ssl
 from smtplib import SMTPAuthenticationError
 from email.mime.text import MIMEText
@@ -177,28 +178,41 @@ def render_category(cat_id):
                            category_data=fetched_categories, category_words=fetched_words)
 
 
-@app.route('/add_category', methods=['GET', 'POST'])
-def render_add_category_page():
+@app.route('/add_word', methods=['GET', 'POST'])
+def render_add_word_page():
+    if not is_logged_in():
+        return redirect('/?error=Not+logged+in')
     if request.method == 'POST':
+        user_id = session.get('user_id')
+
         print(request.form)
-        fname = request.form.get('fname')
-        lname = request.form.get('lname')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        password2 = request.form.get('password2')
+        maori_word = request.form.get('maori').strip()
+        english_translation = request.form.get('english').strip()
+        year_level = request.form.get('level').strip()
+        description = request.form.get('description').strip()
+        category = request.form.get('category')
 
         con = create_connection(DB_NAME)
 
-        query = "INSERT INTO user_details (first_name, last_name, email, password) VALUES(?,?,?,?)"
+        query = "INSERT INTO words (id, maori, english, level, definition, user_id, timestamp, category_id) " \
+                "VALUES(NULL,?,?,?,?,?,?,?)"
 
         cur = con.cursor()
 
-        cur.execute(query, (fname, lname, email, hashed_password))  # executes the query
+        current_datetime = datetime.utcnow()
+        current_timetuple = current_datetime.utctimetuple()
+        current_timestamp = calendar.timegm(current_timetuple) * 1000
+        try:
+            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, current_timestamp,
+                                category))
+        except ValueError:
+            return redirect('/')
+
         con.commit()
         con.close()
         return redirect('/')
 
-    return render_template('add_category.html', logged_in=is_logged_in(), category_list=category_list())
+    return render_template('add_word.html', logged_in=is_logged_in(), category_list=category_list())
 
 
 app.run(host='0.0.0.0', debug=True)
