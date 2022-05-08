@@ -50,7 +50,8 @@ def category_list():
 
 @app.route('/')
 def render_homepage():
-    return render_template('home.html', logged_in=is_logged_in(), category_list=category_list())
+    return render_template('home.html', logged_in=is_logged_in(), category_list=category_list(),
+                           teacher_perms=session.get('teacher'))
 
 
 @app.route('/full_dictionary')
@@ -64,7 +65,7 @@ def render_full_dictionary():
 
     con.close()
     return render_template('full_dictionary.html', logged_in=is_logged_in(), category_list=category_list(),
-                           category_words=fetched_words)
+                           category_words=fetched_words, teacher_perms=session.get('teacher'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -76,7 +77,7 @@ def render_login_page():
         hashed_password = bcrypt.generate_password_hash(password)
         print(hashed_password)
         con = create_connection(DB_NAME)
-        query = "SELECT id, first_name, password FROM user_details WHERE email=?"
+        query = "SELECT id, first_name, password, teacher FROM user_details WHERE email=?"
         cur = con.cursor()
         cur.execute(query, (email,))
         user_data = cur.fetchall()
@@ -86,6 +87,7 @@ def render_login_page():
             user_id = user_data[0][0]
             first_name = user_data[0][1]
             db_password = user_data[0][2]
+            teacher = user_data[0][3]
         else:
             return redirect("/login?error=Email+or+password+is+incorrect")
 
@@ -95,9 +97,11 @@ def render_login_page():
         session['email'] = email
         session['user_id'] = user_id
         session['fname'] = first_name
+        session['teacher'] = teacher
         return redirect('/')
 
-    return render_template('login.html', logged_in=is_logged_in(), category_list=category_list())
+    return render_template('login.html', logged_in=is_logged_in(), category_list=category_list(),
+                           teacher_perms=session.get('teacher'))
 
 
 @app.route('/logout')
@@ -117,6 +121,7 @@ def render_signup_page():
         email = request.form.get('email')
         password = request.form.get('password')
         password2 = request.form.get('password2')
+        teacher = request.form.get('teacher')
 
         if password != password2:
             return redirect('/signup?error=Passwords+do+not+match')
@@ -129,11 +134,15 @@ def render_signup_page():
 
         con = create_connection(DB_NAME)
 
-        query = "INSERT INTO user_details (first_name, last_name, email, password) VALUES(?,?,?,?)"
+        query = "INSERT INTO user_details (first_name, last_name, email, password, teacher) VALUES(?,?,?,?,?)"
 
         cur = con.cursor()
 
-        cur.execute(query, (fname, lname, email, hashed_password))  # executes the query
+        is_teacher = 0
+        if teacher == "Teacher":
+            is_teacher = 1
+
+        cur.execute(query, (fname, lname, email, hashed_password, is_teacher))  # executes the query
         con.commit()
         con.close()
         return redirect('/login')
@@ -141,7 +150,8 @@ def render_signup_page():
     error = request.args.get('error')
     if error is None:
         error = ""
-    return render_template('signup.html', error=error, logged_in=is_logged_in(), category_list=category_list())
+    return render_template('signup.html', error=error, logged_in=is_logged_in(), category_list=category_list(),
+                           teacher_perms=session.get('teacher'))
 
 
 @app.route('/word/<word_id>')
@@ -155,7 +165,7 @@ def render_word(word_id):
 
     con.close()
     return render_template('word.html', logged_in=is_logged_in(), category_list=category_list(),
-                           word_data=queried_data)
+                           word_data=queried_data, teacher_perms=session.get('teacher'))
 
 
 @app.route('/category/<cat_id>')
@@ -163,7 +173,7 @@ def render_category(cat_id):
     con = create_connection(DB_NAME)
 
     cur = con.cursor()
-    query = "SELECT id, category_names FROM categories WHERE id = ?"
+    query = "SELECT id, category_names, user_created FROM categories WHERE id = ?"
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
@@ -174,7 +184,8 @@ def render_category(cat_id):
 
     con.close()
     return render_template('category.html', logged_in=is_logged_in(), category_list=category_list(),
-                           category_data=fetched_categories, category_words=fetched_words)
+                           category_data=fetched_categories, category_words=fetched_words,
+                           teacher_perms=session.get('teacher'))
 
 
 @app.route('/add_word', methods=['GET', 'POST'])
@@ -193,8 +204,8 @@ def render_add_word_page():
 
         con = create_connection(DB_NAME)
 
-        query = "INSERT INTO words (id, maori, english, level, definition, user_id, timestamp, category_id) " \
-                "VALUES(NULL,?,?,?,?,?,?,?)"
+        query = "INSERT INTO words (id, maori, english, level, definition, user_id, timestamp, category_id, image) " \
+                "VALUES(NULL,?,?,?,?,?,?,?,?)"
 
         cur = con.cursor()
 
@@ -204,7 +215,7 @@ def render_add_word_page():
 
         try:
             cur.execute(query, (maori_word, english_translation, year_level, description, user_id, current_datetime,
-                                category))
+                                category, "noimage.png"))
         except ValueError:
             return redirect('/')
 
@@ -214,7 +225,7 @@ def render_add_word_page():
         return redirect('/')
 
     return render_template('add_word.html', logged_in=is_logged_in(), category_list=category_list(),
-                           category_data=category_list())
+                           category_data=category_list(), teacher_perms=session.get('teacher'))
 
 
 @app.route('/add_category', methods=['GET', 'POST'])
@@ -227,19 +238,56 @@ def render_add_category_page():
 
         con = create_connection(DB_NAME)
 
-        query = "INSERT INTO categories(id, category_names) VALUES(NULL,?)"
+        query = "INSERT INTO categories(id, category_names, user_created) VALUES(NULL,?,?)"
 
         cur = con.cursor()
 
         try:
-            cur.execute(query, (name,))
+            cur.execute(query, (name, 1))
         except ValueError:
             return redirect('/')
         con.commit()
         con.close()
         return redirect('/')
 
-    return render_template('add_category.html', category_list=category_list(), logged_in=is_logged_in())
+    return render_template('add_category.html', category_list=category_list(), logged_in=is_logged_in(),
+                           teacher_perms=session.get('teacher'))
+
+
+@app.route('/delete_category/<cat_id>')
+def render_delete_category_page(cat_id):
+    con = create_connection(DB_NAME)
+
+    cur = con.cursor()
+    query = "SELECT id, category_names FROM categories WHERE id = ?"
+    cur.execute(query, (cat_id,))
+    fetched_categories = cur.fetchall()
+
+    cur = con.cursor()
+    query = "SELECT * FROM words WHERE category_id = ?"
+    cur.execute(query, (cat_id,))
+    fetched_words = cur.fetchall()
+
+    con.close()
+
+    return render_template('delete_category.html', category_data=fetched_categories, category_list=category_list(),
+                           logged_in=is_logged_in(), category_words=fetched_words,
+                           teacher_perms=session.get('teacher'))
+
+@app.route('/confirm_delete_category/<cat_id>')
+def render_confirm_delete_category_page(cat_id):
+    if not is_logged_in():
+        return redirect('/?error=Not+logged+in')
+
+    con = create_connection(DB_NAME)
+    query = "DELETE FROM categories WHERE id = ?"
+
+    cur = con.cursor()
+    cur.execute(query, (cat_id, ))
+
+    con.commit()
+    con.close()
+    return redirect('/?Successfully+removed')
 
 
 app.run(host='0.0.0.0', debug=True)

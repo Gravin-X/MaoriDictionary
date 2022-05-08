@@ -26,11 +26,14 @@
             <li><a href="\">Home</a></li>
             <li><a href="/full_dictionary">Full Dictionary</a></li>
             {% if logged_in %}
-            <li><a href="/add_category">Add Category</a></li>
-            <li><a href="/add_word">Add Word</a></li>
+                {% if teacher_perms %}
+                    <li><a href="/add_category">Add Category</a></li>
+                    <li><a href="/add_word">Add Word</a></li>
+                {% endif %}
+
                 <a href="/logout">Log out</a>
             {% else %}
-            <li><a href="/login">Log in</a></li>
+                <li><a href="/login">Log in</a></li>
             {% endif %}
         <li>---------------------</li>
             {% for category in category_list %}
