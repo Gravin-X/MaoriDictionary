@@ -39,6 +39,18 @@ def is_logged_in():
         return True
 
 
+def is_teacher():
+    """
+    A function to return whether the user is a teacher or not
+    """
+    if not is_logged_in() or (session.get("teacher") is (None or 0)):
+        print("Not teacher logged in")
+        return False
+    else:
+        print("Teacher logged in")
+        return True
+
+
 def category_list():
     con = create_connection(DB_NAME)
     cur = con.cursor()
@@ -48,10 +60,11 @@ def category_list():
     con.close()
     return queried_categories
 
+
 @app.route('/')
 def render_homepage():
     return render_template('home.html', logged_in=is_logged_in(), category_list=category_list(),
-                           teacher_perms=session.get('teacher'))
+                           teacher_perms=is_teacher())
 
 
 @app.route('/full_dictionary')
@@ -65,7 +78,7 @@ def render_full_dictionary():
 
     con.close()
     return render_template('full_dictionary.html', logged_in=is_logged_in(), category_list=category_list(),
-                           category_words=fetched_words, teacher_perms=session.get('teacher'))
+                           category_words=fetched_words, teacher_perms=is_teacher())
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -101,7 +114,7 @@ def render_login_page():
         return redirect('/')
 
     return render_template('login.html', logged_in=is_logged_in(), category_list=category_list(),
-                           teacher_perms=session.get('teacher'))
+                           teacher_perms=is_teacher())
 
 
 @app.route('/logout')
@@ -138,11 +151,8 @@ def render_signup_page():
 
         cur = con.cursor()
 
-        is_teacher = 0
-        if teacher == "Teacher":
-            is_teacher = 1
+        cur.execute(query, (fname, lname, email, hashed_password, teacher))  # executes the query
 
-        cur.execute(query, (fname, lname, email, hashed_password, is_teacher))  # executes the query
         con.commit()
         con.close()
         return redirect('/login')
@@ -151,7 +161,7 @@ def render_signup_page():
     if error is None:
         error = ""
     return render_template('signup.html', error=error, logged_in=is_logged_in(), category_list=category_list(),
-                           teacher_perms=session.get('teacher'))
+                           teacher_perms=is_teacher())
 
 
 @app.route('/word/<word_id>')
@@ -165,7 +175,7 @@ def render_word(word_id):
 
     con.close()
     return render_template('word.html', logged_in=is_logged_in(), category_list=category_list(),
-                           word_data=queried_data, teacher_perms=session.get('teacher'))
+                           word_data=queried_data, teacher_perms=is_teacher())
 
 
 @app.route('/category/<cat_id>')
@@ -185,13 +195,17 @@ def render_category(cat_id):
     con.close()
     return render_template('category.html', logged_in=is_logged_in(), category_list=category_list(),
                            category_data=fetched_categories, category_words=fetched_words,
-                           teacher_perms=session.get('teacher'))
+                           teacher_perms=is_teacher())
 
 
 @app.route('/add_word', methods=['GET', 'POST'])
 def render_add_word_page():
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
+
+    if not is_teacher():
+        return redirect('/?error=Not+teacher')
+
     if request.method == 'POST':
         user_id = session.get('user_id')
 
@@ -225,13 +239,17 @@ def render_add_word_page():
         return redirect('/')
 
     return render_template('add_word.html', logged_in=is_logged_in(), category_list=category_list(),
-                           category_data=category_list(), teacher_perms=session.get('teacher'))
+                           category_data=category_list(), teacher_perms=is_teacher())
 
 
 @app.route('/add_category', methods=['GET', 'POST'])
 def render_add_category_page():
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
+
+    if not is_teacher():
+        return redirect('/?error=Not+teacher')
+
     if request.method == "POST":
         print(request.form)
         name = request.form.get('category_name')
@@ -251,16 +269,22 @@ def render_add_category_page():
         return redirect('/')
 
     return render_template('add_category.html', category_list=category_list(), logged_in=is_logged_in(),
-                           teacher_perms=session.get('teacher'))
+                           teacher_perms=is_teacher())
 
 
 @app.route('/delete_category/<cat_id>')
 def render_delete_category_page(cat_id):
+    if not is_logged_in():
+        return redirect('/?error=Not+logged+in')
+
+    if not is_teacher():
+        return redirect('/?error=Not+teacher')
+
     con = create_connection(DB_NAME)
 
     cur = con.cursor()
     query = "SELECT id, category_names FROM categories WHERE id = ?"
-    cur.execute(query, (cat_id,))
+    cur.execute(query, (cat_id, ))
     fetched_categories = cur.fetchall()
 
     cur = con.cursor()
@@ -272,18 +296,22 @@ def render_delete_category_page(cat_id):
 
     return render_template('delete_category.html', category_data=fetched_categories, category_list=category_list(),
                            logged_in=is_logged_in(), category_words=fetched_words,
-                           teacher_perms=session.get('teacher'))
+                           teacher_perms=is_teacher())
+
 
 @app.route('/confirm_delete_category/<cat_id>')
 def render_confirm_delete_category_page(cat_id):
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
 
+    if not is_teacher():
+        return redirect('/?error=Not+teacher')
+
     con = create_connection(DB_NAME)
     query = "DELETE FROM categories WHERE id = ?"
 
     cur = con.cursor()
-    cur.execute(query, (cat_id, ))
+    cur.execute(query, (cat_id,))
 
     con.commit()
     con.close()
