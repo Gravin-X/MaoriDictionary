@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, session, redirect
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
-from datetime import datetime
+import datetime
 import calendar
 import smtplib, ssl
 from smtplib import SMTPAuthenticationError
@@ -13,7 +13,7 @@ DB_NAME = "realdictionary.db"
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
-app.secret_key = "martyn"
+app.secret_key = "secret_name"
 
 
 def create_connection(db_file):
@@ -235,10 +235,11 @@ def render_add_word_page():
 
         current_datetime = datetime.utcnow()
         current_timetuple = current_datetime.utctimetuple()
-        current_timestamp = calendar.timegm(current_timetuple) * 1000
+        current_timestamp = calendar.timegm(current_timetuple)
+        timestamp = datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
 
         try:
-            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, current_datetime,
+            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, timestamp,
                                 category, "noimage.png"))
         except ValueError:
             return redirect('/')
