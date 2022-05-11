@@ -294,7 +294,7 @@ footer img {
     }
 
     main {
-        background-image: url('/static/images/poutama.jpg');
+        background-image: url('poutama.jpg');
     }
     .formRow {
         display: grid;

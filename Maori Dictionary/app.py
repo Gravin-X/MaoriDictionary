@@ -173,9 +173,19 @@ def render_word(word_id):
     cur.execute(query, (word_id,))
     queried_data = cur.fetchall()
 
+    author = queried_data[0][1]
+
+    print(queried_data)
+    print(author)
+
+    cur = con.cursor()
+    query = "SELECT * FROM user_details WHERE id=?"
+    cur.execute(query, (author,))
+    user_list = cur.fetchall()
+
     con.close()
     return render_template('word.html', logged_in=is_logged_in(), category_list=category_list(),
-                           word_data=queried_data, teacher_perms=is_teacher())
+                           word_data=queried_data, teacher_perms=is_teacher(), users=user_list)
 
 
 @app.route('/category/<cat_id>')
@@ -284,7 +294,7 @@ def render_delete_category_page(cat_id):
 
     cur = con.cursor()
     query = "SELECT id, category_names FROM categories WHERE id = ?"
-    cur.execute(query, (cat_id, ))
+    cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
     cur = con.cursor()
@@ -312,6 +322,61 @@ def render_confirm_delete_category_page(cat_id):
 
     cur = con.cursor()
     cur.execute(query, (cat_id,))
+
+    con.commit()
+    con.close()
+    return redirect('/?Successfully+removed')
+
+
+@app.route('/delete_word/<word_id>')
+def render_delete_word_page(word_id):
+    if not is_logged_in():
+        return redirect('/?error=Not+logged+in')
+
+    if not is_teacher():
+        return redirect('/?error=Not+teacher')
+
+    con = create_connection(DB_NAME)
+
+    cur = con.cursor()
+    query = "SELECT id, category_names FROM categories WHERE id = ?"
+    cur.execute(query, (word_id,))
+    fetched_categories = cur.fetchall()
+
+
+    cur = con.cursor()
+    query = "SELECT * FROM words WHERE id = ?"
+    cur.execute(query, (word_id,))
+    fetched_word = cur.fetchall()
+
+    author = fetched_word[0][1]
+
+    cur = con.cursor()
+    query = "SELECT * FROM user_details WHERE id=?"
+    cur.execute(query, (author,))
+    user_list = cur.fetchall()
+
+    con.close()
+
+    return render_template('delete_word.html', category_data=fetched_categories, category_list=category_list(),
+                           logged_in=is_logged_in(), word_data=fetched_word,
+                           teacher_perms=is_teacher(), users=user_list)
+
+
+@app.route('/confirm_delete_word/<word_id>')
+def render_confirm_delete_word_page(word_id):
+
+    if not is_logged_in():
+        return redirect('/?error=Not+logged+in')
+
+    if not is_teacher():
+        return redirect('/?error=Not+teacher')
+
+    con = create_connection(DB_NAME)
+    query = "DELETE FROM words WHERE id = ?"
+
+    cur = con.cursor()
+    cur.execute(query, (word_id,))
 
     con.commit()
     con.close()
