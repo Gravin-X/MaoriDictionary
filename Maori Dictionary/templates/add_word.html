@@ -23,14 +23,15 @@
 
     <div class="form-group">
         <div class="form-label">Definition:</div>
-        <div class="form-element"><input type="text" id="description" name="description" required></div>
+        <div class="form-element"><textarea type="text" rows="5" id="description" name="description" required>
+        </textarea></div>
     </div>
 
     <div class="form-group">
         <!--        dropdownm-->
         <label class="form-label" required>Choose a category:</label>
         <label for="category"></label><select name="category" id="category">
-            {% for category in category_data %}
+            {% for category in category_list %}
             <option class="form-element" value={{ category[0] }}>{{ category[1] }}</option>
             {% endfor %}
         </select>

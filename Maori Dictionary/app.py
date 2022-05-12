@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, session, redirect
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
-import datetime
+from datetime import date
 import calendar
 import smtplib, ssl
 from smtplib import SMTPAuthenticationError
@@ -164,26 +164,71 @@ def render_signup_page():
                            teacher_perms=is_teacher())
 
 
-@app.route('/word/<word_id>')
+@app.route('/word/<word_id>', methods=['GET', 'POST'])
 def render_word(word_id):
-    con = create_connection(DB_NAME)
+    if request.method == 'POST':
+        if not is_logged_in():
+            return redirect('/?error=Not+logged+in')
 
-    cur = con.cursor()
-    query = "SELECT * FROM words WHERE id = ?"
-    cur.execute(query, (word_id,))
-    queried_data = cur.fetchall()
+        if not is_teacher():
+            return redirect('/?error=Not+teacher')
 
-    author = queried_data[0][1]
+        user_id = session.get('user_id')
 
-    print(queried_data)
-    print(author)
+        print(request.form)
+        maori_word = request.form.get('maori').strip()
+        english_translation = request.form.get('english').strip()
+        year_level = request.form.get('level').strip()
+        description = request.form.get('description').strip()
+        category = request.form.get('category')
 
-    cur = con.cursor()
-    query = "SELECT * FROM user_details WHERE id=?"
-    cur.execute(query, (author,))
-    user_list = cur.fetchall()
+        year_level = max(0, min(10, int(year_level)))
 
-    con.close()
+        timestamp = 0  # date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
+
+        con = create_connection(DB_NAME)
+
+        cur = con.cursor()
+        query = "UPDATE words SET user_id=?, maori=?, english=?, definition=?, level=?, timestamp=? WHERE id=?"
+
+        cur.execute(query, (user_id, maori_word, english_translation, description, year_level, timestamp, word_id))
+
+        # current_datetime = datetime.utcnow()
+        # current_timetuple = current_datetime.utctimetuple()
+        ##current_timestamp = calendar.timegm(current_timetuple)
+        # timestamp = date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
+
+        # try:
+        #    cur.execute(query, (maori_word, english_translation, year_level, description, user_id, timestamp,
+        #                        category, "noimage.png", word_id))
+        # except ValueError:
+        #    return redirect('/')
+
+        con.commit()
+
+        con.close()
+        return redirect('/word/' + str(word_id))
+    else:
+        con = create_connection(DB_NAME)
+
+        cur = con.cursor()
+        query = "SELECT * FROM words WHERE id = ?"
+        cur.execute(query, (word_id,))
+        queried_data = cur.fetchall()
+
+        print(queried_data)
+
+        author = queried_data[0][1]
+
+        print(queried_data)
+        print(author)
+
+        cur = con.cursor()
+        query = "SELECT * FROM user_details WHERE id=?"
+        cur.execute(query, (author,))
+        user_list = cur.fetchall()
+
+        con.close()
     return render_template('word.html', logged_in=is_logged_in(), category_list=category_list(),
                            word_data=queried_data, teacher_perms=is_teacher(), users=user_list)
 
@@ -226,21 +271,18 @@ def render_add_word_page():
         description = request.form.get('description').strip()
         category = request.form.get('category')
 
+        year_level = max(0, min(10, int(year_level)))
+
         con = create_connection(DB_NAME)
 
         query = "INSERT INTO words (id, maori, english, level, definition, user_id, timestamp, category_id, image) " \
-                "VALUES(NULL,?,?,?,?,?,?,?,?)"
+                "VALUES(NULL,?,?,?,?,?,date(),?,?)"
 
         cur = con.cursor()
 
-        current_datetime = datetime.utcnow()
-        current_timetuple = current_datetime.utctimetuple()
-        current_timestamp = calendar.timegm(current_timetuple)
-        timestamp = datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
-
         try:
-            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, timestamp,
-                                category, "noimage.png"))
+            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, category,
+                                "noimage.png"))
         except ValueError:
             return redirect('/')
 
@@ -249,8 +291,8 @@ def render_add_word_page():
         con.close()
         return redirect('/')
 
-    return render_template('add_word.html', logged_in=is_logged_in(), category_list=category_list(),
-                           category_data=category_list(), teacher_perms=is_teacher())
+    return render_template('add_word.html', logged_in=is_logged_in(),
+                           category_list=category_list(), teacher_perms=is_teacher())
 
 
 @app.route('/add_category', methods=['GET', 'POST'])
@@ -344,7 +386,6 @@ def render_delete_word_page(word_id):
     cur.execute(query, (word_id,))
     fetched_categories = cur.fetchall()
 
-
     cur = con.cursor()
     query = "SELECT * FROM words WHERE id = ?"
     cur.execute(query, (word_id,))
@@ -366,7 +407,6 @@ def render_delete_word_page(word_id):
 
 @app.route('/confirm_delete_word/<word_id>')
 def render_confirm_delete_word_page(word_id):
-
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
 

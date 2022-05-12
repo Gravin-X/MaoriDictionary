@@ -7,7 +7,7 @@
 
 <table class="table">
     <h2>{{ category_data[0][1] }}
-    {% if category_data[0][2] %}
+    {% if category_data[0][2] and logged_in and teacher_perms %}
     <a href="/delete_category/{{ category_data[0][0] }}"> - Delete this category?</a>
     {% endif %}
     </h2>

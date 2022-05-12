@@ -5,7 +5,9 @@
 
 {% block main %}
 <h2>{{ word_data[0][3] }} - {{ word_data[0][4] }}
-<a href="/delete_word/{{ word_data[0][0] }}"> - Delete this word?</a>
+{% if logged_in and teacher_perms %}
+    <a href="/delete_word/{{ word_data[0][0] }}"> - Delete this word?</a>
+{% endif %}
 </h2>
     <table>
         <thead>
@@ -36,4 +38,40 @@
             </tr>
         </thead>
     </table>
+
+<br>
+
+{% if logged_in and teacher_perms %}
+    <h2>Edit Word</h2>
+    <form class="dataForm" method="post">
+        <div class="form-group">
+            <div class="form-label">Maōri Word:</div>
+            <div class="form-element"><input type="text" id="maori" name="maori" required></div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">English Translation:</div>
+            <div class="form-element"><input type="text" id="english" name="english" required></div>
+        </div>
+
+        <div class="form-group">
+            <div clas
+                 ++s="form-label">Year Level:</div>
+            <div class="form-element"><input type="number" id="level" name="level" required></div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label">Definition:</div>
+            <div class="form-element"><textarea type="text" rows="5" id="description" name="description" required>
+            </textarea></div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-label"></div>
+            <div class="form-element"><input type="submit" value="Update Word"></div>
+        </div>
+
+    </form>
+{% endif %}
+
 {% endblock %}
