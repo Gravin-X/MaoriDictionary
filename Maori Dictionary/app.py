@@ -53,8 +53,8 @@ def is_teacher():
 
 def category_list():
     con = create_connection(DB_NAME)
-    cur = con.cursor()
     query = "SELECT * FROM categories"
+    cur = con.cursor()
     cur.execute(query)
     queried_categories = cur.fetchall()
     con.close()
@@ -71,8 +71,8 @@ def render_homepage():
 def render_full_dictionary():
     con = create_connection(DB_NAME)
 
-    cur = con.cursor()
     query = "SELECT * FROM words"
+    cur = con.cursor()
     cur.execute(query)
     fetched_words = cur.fetchall()
 
@@ -83,6 +83,9 @@ def render_full_dictionary():
 
 @app.route('/login', methods=['GET', 'POST'])
 def render_login_page():
+    if is_logged_in():
+        return redirect('/?error=Already+logged+in')
+
     if request.method == 'POST':
         print(request.form)
         email = request.form.get('email').lower().strip()
@@ -103,6 +106,8 @@ def render_login_page():
             teacher = user_data[0][3]
         else:
             return redirect("/login?error=Email+or+password+is+incorrect")
+
+        # Checks and compares the hashed password and entered password
 
         if not bcrypt.check_password_hash(db_password, password):
             return redirect("/login?error=Email+or+password+is+incorrect")
@@ -127,6 +132,9 @@ def render_logout_page():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def render_signup_page():
+    if is_logged_in():
+        return redirect('/?error=Already+logged+in')
+
     if request.method == 'POST':
         print(request.form)
         fname = request.form.get('fname')
@@ -136,21 +144,25 @@ def render_signup_page():
         password2 = request.form.get('password2')
         teacher = request.form.get('teacher')
 
+        # Checks if both passwords matches
         if password != password2:
             return redirect('/signup?error=Passwords+do+not+match')
-        print(password, len(password))
+
         if len(password) < 8:
             print(password, len(password), len(password) < 8)
             return redirect('/signup?error=Passwords+must+be+at+least+8+characters')
 
+        # Hashes the password
         hashed_password = bcrypt.generate_password_hash(password)
 
+        # Connects to the Database
         con = create_connection(DB_NAME)
 
         query = "INSERT INTO user_details (first_name, last_name, email, password, teacher) VALUES(?,?,?,?,?)"
 
         cur = con.cursor()
 
+        # Executes the query
         cur.execute(query, (fname, lname, email, hashed_password, teacher))  # executes the query
 
         con.commit()
@@ -188,8 +200,9 @@ def render_word(word_id):
 
         con = create_connection(DB_NAME)
 
-        cur = con.cursor()
         query = "UPDATE words SET user_id=?, maori=?, english=?, definition=?, level=?, timestamp=? WHERE id=?"
+
+        cur = con.cursor()
 
         cur.execute(query, (user_id, maori_word, english_translation, description, year_level, timestamp, word_id))
 
@@ -211,8 +224,8 @@ def render_word(word_id):
     else:
         con = create_connection(DB_NAME)
 
-        cur = con.cursor()
         query = "SELECT * FROM words WHERE id = ?"
+        cur = con.cursor()
         cur.execute(query, (word_id,))
         queried_data = cur.fetchall()
 
@@ -223,8 +236,8 @@ def render_word(word_id):
         print(queried_data)
         print(author)
 
-        cur = con.cursor()
         query = "SELECT * FROM user_details WHERE id=?"
+        cur = con.cursor()
         cur.execute(query, (author,))
         user_list = cur.fetchall()
 
@@ -237,13 +250,13 @@ def render_word(word_id):
 def render_category(cat_id):
     con = create_connection(DB_NAME)
 
-    cur = con.cursor()
     query = "SELECT id, category_names, user_created FROM categories WHERE id = ?"
+    cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
-    cur = con.cursor()
     query = "SELECT * FROM words WHERE category_id = ?"
+    cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_words = cur.fetchall()
 
@@ -335,13 +348,13 @@ def render_delete_category_page(cat_id):
 
     con = create_connection(DB_NAME)
 
-    cur = con.cursor()
     query = "SELECT id, category_names FROM categories WHERE id = ?"
+    cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
-    cur = con.cursor()
     query = "SELECT * FROM words WHERE category_id = ?"
+    cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_words = cur.fetchall()
 
@@ -362,7 +375,6 @@ def render_confirm_delete_category_page(cat_id):
 
     con = create_connection(DB_NAME)
     query = "DELETE FROM categories WHERE id = ?"
-
     cur = con.cursor()
     cur.execute(query, (cat_id,))
 
@@ -373,36 +385,36 @@ def render_confirm_delete_category_page(cat_id):
 
 @app.route('/delete_word/<word_id>')
 def render_delete_word_page(word_id):
-    if not is_logged_in():
-        return redirect('/?error=Not+logged+in')
+    if is_logged_in():
+        if not is_teacher():
+            return redirect('/?error=Not+teacher')
 
-    if not is_teacher():
-        return redirect('/?error=Not+teacher')
+        con = create_connection(DB_NAME)
 
-    con = create_connection(DB_NAME)
+        query = "SELECT id, category_names FROM categories WHERE id = ?"
+        cur = con.cursor()
+        cur.execute(query, (word_id,))
+        fetched_categories = cur.fetchall()
 
-    cur = con.cursor()
-    query = "SELECT id, category_names FROM categories WHERE id = ?"
-    cur.execute(query, (word_id,))
-    fetched_categories = cur.fetchall()
+        query = "SELECT * FROM words WHERE id = ?"
+        cur = con.cursor()
+        cur.execute(query, (word_id,))
+        fetched_word = cur.fetchall()
 
-    cur = con.cursor()
-    query = "SELECT * FROM words WHERE id = ?"
-    cur.execute(query, (word_id,))
-    fetched_word = cur.fetchall()
+        author = fetched_word[0][1]
 
-    author = fetched_word[0][1]
+        query = "SELECT * FROM user_details WHERE id=?"
+        cur = con.cursor()
+        cur.execute(query, (author,))
+        user_list = cur.fetchall()
 
-    cur = con.cursor()
-    query = "SELECT * FROM user_details WHERE id=?"
-    cur.execute(query, (author,))
-    user_list = cur.fetchall()
+        con.close()
 
-    con.close()
+        return render_template('delete_word.html', category_data=fetched_categories, category_list=category_list(),
+                               logged_in=is_logged_in(), word_data=fetched_word,
+                               teacher_perms=is_teacher(), users=user_list)
 
-    return render_template('delete_word.html', category_data=fetched_categories, category_list=category_list(),
-                           logged_in=is_logged_in(), word_data=fetched_word,
-                           teacher_perms=is_teacher(), users=user_list)
+    return redirect('/?error=Not+logged+in')
 
 
 @app.route('/confirm_delete_word/<word_id>')
