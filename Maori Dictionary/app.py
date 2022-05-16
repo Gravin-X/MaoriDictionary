@@ -8,7 +8,7 @@ from datetime import datetime
 # Necessary code
 DB_NAME = "realdictionary.db"
 app = Flask(__name__)
-app.secret_key = "secret_name"
+app.secret_key = "sage"
 
 # Bcrypt is used to hash the user's passwords.
 bcrypt = Bcrypt(app)
@@ -152,7 +152,7 @@ def render_login_page():
         session['fname'] = first_name
         session['teacher'] = teacher
         return redirect('/')
-    # Error Prevention
+    # Display errors to the user
     error = request.args.get('error')
     if error is None:
         error = ""
@@ -172,11 +172,11 @@ def render_logout_page():
 
 # Sign Up
 @app.route('/signup', methods=['GET', 'POST'])
-
 def render_signup_page():
+    # Redirects the user if logged in
     if is_logged_in():
         return redirect('/?error=Already+logged+in')
-
+    # Runs the code if the user submits the form
     if request.method == 'POST':
         print(request.form)
         fname = request.form.get('fname')
@@ -200,6 +200,7 @@ def render_signup_page():
         # Connects to the Database
         con = create_connection(DB_NAME)
 
+        # Builds user data in order to add to the database
         query = "INSERT INTO user_details (first_name, last_name, email, password, teacher) VALUES(?,?,?,?,?)"
 
         cur = con.cursor()
@@ -207,10 +208,14 @@ def render_signup_page():
         # Executes the query
         cur.execute(query, (fname, lname, email, hashed_password, teacher))  # executes the query
 
+        # Commit and close database connection
         con.commit()
         con.close()
+
+        # Redirects to the login page
         return redirect('/login')
 
+    # Displays error to the user
     error = request.args.get('error')
     if error is None:
         error = ""
@@ -273,9 +278,8 @@ def render_word_page(word_id):
             #                        category, "noimage.png", word_id))
             # except ValueError:
             #    return redirect('/')
-
+            # Commits and closes the
             con.commit()
-
             con.close()
         else:
             return redirect('/word/' + str(word_id) + "?error=Nothing+changed")
@@ -372,30 +376,36 @@ def render_add_word_page():
 # Add Category
 @app.route('/add_category', methods=['GET', 'POST'])
 def render_add_category_page():
+    # Redirects to the homepage, if the user isn't logged in
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
-
+    # Redirects to the homepage, if the user isn't a teacher
     if not is_teacher():
         return redirect('/?error=Not+teacher')
-
+    # Runs the code if the user adds a new category
     if request.method == "POST":
         print(request.form)
         name = request.form.get('category_name')
 
+        # Connects to the database
         con = create_connection(DB_NAME)
 
+        # Builds new category in order to add to the database
         query = "INSERT INTO categories(id, category_names, user_created) VALUES(NULL,?,?)"
 
         cur = con.cursor()
 
+        # Error prevention
         try:
+            # Executes the query and inserts into the category table
             cur.execute(query, (name, 1))
         except sqlite3.IntegrityError:
             return redirect('/?error=This+category+already+exists')
+        # Commit and close database connection
         con.commit()
         con.close()
 
-        # Error Prevention
+        # Display error to the user
     error = request.args.get('error')
     if error is None:
         error = ""

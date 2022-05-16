@@ -50,19 +50,24 @@
 
         <div class="form-group">
             <div class="form-label">English Translation:</div>
-            <div class="form-element"><input type="text" id="english" name="english" value="{{ word_data[0][4] }}" required></div>
+            <div class="form-element">
+                <input type="text" id="english" name="english" value="{{ word_data[0][4] }}" required>
+            </div>
         </div>
 
-        <div class="form-group">
-            <div clas
-                 ++s="form-label">Year Level:</div>
-            <div class="form-element"><input type="number" id="level" name="level" value="{{ word_data[0][6] }}" required></div>
-        </div>
+        <div class="inline-button">Year Level:</div><br>
+        {% for n in range(1, 11) %}
+        <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ word_data[0][6] }}" required>
+        <label for="level{{ n }}">{{ n }}</label>
+        {% endfor %}
+        <div></div><br>
 
         <div class="form-group">
             <div class="form-label">Definition:</div>
-            <div class="form-element"><textarea type="text" rows="5" id="description" name="description" required>{{ word_data[0][5] }}
-            </textarea></div>
+            <div class="form-element">
+                <textarea type="text" rows="5" id="description" name="description" required>{{ word_data[0][5] }}
+            </textarea>
+            </div>
         </div>
 
         <div class="form-group">
