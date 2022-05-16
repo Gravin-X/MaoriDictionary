@@ -76,6 +76,10 @@ img {
     border-top: 2px dashed #fff;
 }
 
+.dataForm input[type='radio']{
+    width: 7%;
+}
+
 table {
     width: 100%;
     border: 2px solid #666;
@@ -294,7 +298,7 @@ footer img {
     }
 
     main {
-        background-image: url('poutama.jpg');
+        background-image: url('/static/images/poutama.jpg');
     }
     .formRow {
         display: grid;

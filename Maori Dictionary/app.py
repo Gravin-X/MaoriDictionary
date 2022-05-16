@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, session, redirect
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 # Necessary code
 DB_NAME = "realdictionary.db"
@@ -101,12 +102,24 @@ def render_full_dictionary():
                            category_words=fetched_words, teacher_perms=is_teacher())
 
 
-# Login
+# Login Route
 @app.route('/login', methods=['GET', 'POST'])
 def render_login_page():
+    """
+    Route for login page
+
+    User enters login details
+        - checks if they match details in user
+            - if they do then login is successful - session is created
+            -if not then error occurs - redirected to login page
+
+    Returns login.html
+
+    """
+    # Redirects the user if logged in
     if is_logged_in():
         return redirect('/?error=Already+logged+in')
-
+    # User enters login details
     if request.method == 'POST':
         print(request.form)
         email = request.form.get('email').lower().strip()
@@ -120,6 +133,7 @@ def render_login_page():
         user_data = cur.fetchall()
         con.close()
 
+        # Checks if the user entries matches the login details
         if user_data:
             user_id = user_data[0][0]
             first_name = user_data[0][1]
@@ -132,13 +146,13 @@ def render_login_page():
 
         if not bcrypt.check_password_hash(db_password, password):
             return redirect("/login?error=Email+or+password+is+incorrect")
-
+        # Creating Sessions
         session['email'] = email
         session['user_id'] = user_id
         session['fname'] = first_name
         session['teacher'] = teacher
         return redirect('/')
-
+    # Error Prevention
     error = request.args.get('error')
     if error is None:
         error = ""
@@ -147,7 +161,7 @@ def render_login_page():
                            teacher_perms=is_teacher(), error=error)
 
 
-# Logout
+# Logout Route
 @app.route('/logout')
 def render_logout_page():
     print(list(session.keys()))
@@ -158,6 +172,7 @@ def render_logout_page():
 
 # Sign Up
 @app.route('/signup', methods=['GET', 'POST'])
+
 def render_signup_page():
     if is_logged_in():
         return redirect('/?error=Already+logged+in')
@@ -205,7 +220,7 @@ def render_signup_page():
 
 # Word
 @app.route('/word/<word_id>', methods=['GET', 'POST'])
-def render_word(word_id):
+def render_word_page(word_id):
     if request.method == 'POST':
         if not is_logged_in():
             return redirect('/?error=Not+logged+in')
@@ -228,11 +243,13 @@ def render_word(word_id):
         english_translation = request.form.get('english').strip()
         year_level = request.form.get('level').strip()
         description = request.form.get('description').strip()
+        timestamp = datetime.now()
+        current_timestamp = timestamp.strftime("%Y-%m-%d %X")
         # category = request.form.get('category')
 
         year_level = max(0, min(10, int(year_level)))
 
-        timestamp = 0  # date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
+        # date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
 
         if (word_maori != maori_word) or (word_english != english_translation) or (year_level != word_level) \
                 or (word_desc != description):
@@ -243,7 +260,8 @@ def render_word(word_id):
 
             cur = con.cursor()
 
-            cur.execute(query, (user_id, maori_word, english_translation, description, year_level, timestamp, word_id))
+            cur.execute(query, (user_id, maori_word, english_translation, description, year_level, current_timestamp,
+                                word_id))
 
             # current_datetime = datetime.utcnow()
             # current_timetuple = current_datetime.utctimetuple()
@@ -289,7 +307,7 @@ def render_word(word_id):
 
 # Category
 @app.route('/category/<cat_id>')
-def render_category(cat_id):
+def render_category_page(cat_id):
     con = create_connection(DB_NAME)
 
     query = "SELECT id, category_names, user_created FROM categories WHERE id = ?"
@@ -372,13 +390,16 @@ def render_add_category_page():
 
         try:
             cur.execute(query, (name, 1))
-        except ValueError:
-            return redirect('/')
+        except sqlite3.IntegrityError:
+            return redirect('/?error=This+category+already+exists')
         con.commit()
         con.close()
-        return redirect('/')
 
-    return render_template('add_category.html', category_list=category_list(), logged_in=is_logged_in(),
+        # Error Prevention
+    error = request.args.get('error')
+    if error is None:
+        error = ""
+    return render_template('add_category.html', error=error, category_list=category_list(), logged_in=is_logged_in(),
                            teacher_perms=is_teacher())
 
 

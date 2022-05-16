@@ -10,21 +10,23 @@
         <div class="form-label">Maōri Word:</div>
         <div class="form-element"><input type="text" id="maori" name="maori" required></div>
     </div>
-
+    <br>
     <div class="form-group">
         <div class="form-label">English Translation:</div>
         <div class="form-element"><input type="text" id="english" name="english" required></div>
     </div>
+    <br>
 
-    <div class="form-group">
-        <div class="form-label">Year Level:</div>
-        <div class="form-element"><input type="range" min="1" max="10" id="level" name="level" required></div>
-    </div>
+    <div class="inline-button">Year Level:</div><br>
+       {% for n in range(1, 11) %}
+    <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ n }}" required>
+    <label for="level{{ n }}">{{ n }}</label>
+        {% endfor %}
+    <div></div><br>
 
     <div class="form-group">
         <div class="form-label">Definition:</div>
-        <div class="form-element"><textarea type="text" rows="5" id="description" name="description" required>
-        </textarea></div>
+        <div class="form-element"><textarea type="text" rows="5" id="description" name="description" required></textarea></div>
     </div>
 
     <div class="form-group">
