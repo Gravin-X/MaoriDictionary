@@ -29,7 +29,6 @@
             <tr>
                 <td>Edited by:</td>
                 <td>{{ users[0][1] }} {{ users[0][2] }}</td>
-                <td></td>
             </tr>
 
             <tr>
@@ -46,23 +45,23 @@
     <form class="dataForm" method="post">
         <div class="form-group">
             <div class="form-label">Maōri Word:</div>
-            <div class="form-element"><input type="text" id="maori" name="maori" required></div>
+            <div class="form-element"><input type="text" id="maori" name="maori" value="{{ word_data[0][3] }}" required></div>
         </div>
 
         <div class="form-group">
             <div class="form-label">English Translation:</div>
-            <div class="form-element"><input type="text" id="english" name="english" required></div>
+            <div class="form-element"><input type="text" id="english" name="english" value="{{ word_data[0][4] }}" required></div>
         </div>
 
         <div class="form-group">
             <div clas
                  ++s="form-label">Year Level:</div>
-            <div class="form-element"><input type="number" id="level" name="level" required></div>
+            <div class="form-element"><input type="number" id="level" name="level" value="{{ word_data[0][6] }}" required></div>
         </div>
 
         <div class="form-group">
             <div class="form-label">Definition:</div>
-            <div class="form-element"><textarea type="text" rows="5" id="description" name="description" required>
+            <div class="form-element"><textarea type="text" rows="5" id="description" name="description" required>{{ word_data[0][5] }}
             </textarea></div>
         </div>
 

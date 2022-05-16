@@ -1,22 +1,23 @@
+# Imports stuff
 from flask import Flask, render_template, request, session, redirect
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
-from datetime import date
-import calendar
-import smtplib, ssl
-from smtplib import SMTPAuthenticationError
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
+# Necessary code
 DB_NAME = "realdictionary.db"
-
 app = Flask(__name__)
-bcrypt = Bcrypt(app)
 app.secret_key = "secret_name"
 
+# Bcrypt is used to hash the user's passwords.
+bcrypt = Bcrypt(app)
 
+
+# Creating a connection to the database
 def create_connection(db_file):
+    """
+    Create a connection to the sqlite db
+    """
     try:
         connection = sqlite3.connect(db_file)
         connection.execute('pragma foreign_keys=ON')
@@ -27,6 +28,7 @@ def create_connection(db_file):
     return None
 
 
+# Checks if the user is logged in
 def is_logged_in():
     """
     A function to return whether the user is logged in or not
@@ -39,6 +41,7 @@ def is_logged_in():
         return True
 
 
+# Checks if the user is a teacher
 def is_teacher():
     """
     A function to return whether the user is a teacher or not
@@ -61,12 +64,29 @@ def category_list():
     return queried_categories
 
 
+def get_word_data(word_id):
+    con = create_connection(DB_NAME)
+
+    query = "SELECT * FROM words WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (word_id,))
+    queried_data = cur.fetchall()
+
+    print(queried_data)
+
+    con.close()
+
+    return queried_data
+
+
+# Homepage
 @app.route('/')
 def render_homepage():
     return render_template('home.html', logged_in=is_logged_in(), category_list=category_list(),
                            teacher_perms=is_teacher())
 
 
+# Full Dictionary
 @app.route('/full_dictionary')
 def render_full_dictionary():
     con = create_connection(DB_NAME)
@@ -81,6 +101,7 @@ def render_full_dictionary():
                            category_words=fetched_words, teacher_perms=is_teacher())
 
 
+# Login
 @app.route('/login', methods=['GET', 'POST'])
 def render_login_page():
     if is_logged_in():
@@ -118,10 +139,15 @@ def render_login_page():
         session['teacher'] = teacher
         return redirect('/')
 
+    error = request.args.get('error')
+    if error is None:
+        error = ""
+
     return render_template('login.html', logged_in=is_logged_in(), category_list=category_list(),
-                           teacher_perms=is_teacher())
+                           teacher_perms=is_teacher(), error=error)
 
 
+# Logout
 @app.route('/logout')
 def render_logout_page():
     print(list(session.keys()))
@@ -130,6 +156,7 @@ def render_logout_page():
     return redirect('/?message=See+you+next+time')
 
 
+# Sign Up
 @app.route('/signup', methods=['GET', 'POST'])
 def render_signup_page():
     if is_logged_in():
@@ -147,7 +174,7 @@ def render_signup_page():
         # Checks if both passwords matches
         if password != password2:
             return redirect('/signup?error=Passwords+do+not+match')
-
+        # Checks whether the password is less than 8 characters
         if len(password) < 8:
             print(password, len(password), len(password) < 8)
             return redirect('/signup?error=Passwords+must+be+at+least+8+characters')
@@ -176,6 +203,7 @@ def render_signup_page():
                            teacher_perms=is_teacher())
 
 
+# Word
 @app.route('/word/<word_id>', methods=['GET', 'POST'])
 def render_word(word_id):
     if request.method == 'POST':
@@ -187,39 +215,52 @@ def render_word(word_id):
 
         user_id = session.get('user_id')
 
+        # Current word data
+        word_data = get_word_data(word_id)
+
+        word_maori = word_data[0][3]
+        word_english = word_data[0][4]
+        word_desc = word_data[0][5]
+        word_level = word_data[0][6]
+
         print(request.form)
         maori_word = request.form.get('maori').strip()
         english_translation = request.form.get('english').strip()
         year_level = request.form.get('level').strip()
         description = request.form.get('description').strip()
-        category = request.form.get('category')
+        # category = request.form.get('category')
 
         year_level = max(0, min(10, int(year_level)))
 
         timestamp = 0  # date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
 
-        con = create_connection(DB_NAME)
+        if (word_maori != maori_word) or (word_english != english_translation) or (year_level != word_level) \
+                or (word_desc != description):
 
-        query = "UPDATE words SET user_id=?, maori=?, english=?, definition=?, level=?, timestamp=? WHERE id=?"
+            con = create_connection(DB_NAME)
 
-        cur = con.cursor()
+            query = "UPDATE words SET user_id=?, maori=?, english=?, definition=?, level=?, timestamp=? WHERE id=?"
 
-        cur.execute(query, (user_id, maori_word, english_translation, description, year_level, timestamp, word_id))
+            cur = con.cursor()
 
-        # current_datetime = datetime.utcnow()
-        # current_timetuple = current_datetime.utctimetuple()
-        ##current_timestamp = calendar.timegm(current_timetuple)
-        # timestamp = date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
+            cur.execute(query, (user_id, maori_word, english_translation, description, year_level, timestamp, word_id))
 
-        # try:
-        #    cur.execute(query, (maori_word, english_translation, year_level, description, user_id, timestamp,
-        #                        category, "noimage.png", word_id))
-        # except ValueError:
-        #    return redirect('/')
+            # current_datetime = datetime.utcnow()
+            # current_timetuple = current_datetime.utctimetuple()
+            ##current_timestamp = calendar.timegm(current_timetuple)
+            # timestamp = date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
 
-        con.commit()
+            # try:
+            #    cur.execute(query, (maori_word, english_translation, year_level, description, user_id, timestamp,
+            #                        category, "noimage.png", word_id))
+            # except ValueError:
+            #    return redirect('/')
 
-        con.close()
+            con.commit()
+
+            con.close()
+        else:
+            return redirect('/word/' + str(word_id) + "?error=Nothing+changed")
         return redirect('/word/' + str(word_id))
     else:
         con = create_connection(DB_NAME)
@@ -246,6 +287,7 @@ def render_word(word_id):
                            word_data=queried_data, teacher_perms=is_teacher(), users=user_list)
 
 
+# Category
 @app.route('/category/<cat_id>')
 def render_category(cat_id):
     con = create_connection(DB_NAME)
@@ -266,6 +308,7 @@ def render_category(cat_id):
                            teacher_perms=is_teacher())
 
 
+# Add Word
 @app.route('/add_word', methods=['GET', 'POST'])
 def render_add_word_page():
     if not is_logged_in():
@@ -308,6 +351,7 @@ def render_add_word_page():
                            category_list=category_list(), teacher_perms=is_teacher())
 
 
+# Add Category
 @app.route('/add_category', methods=['GET', 'POST'])
 def render_add_category_page():
     if not is_logged_in():
@@ -338,6 +382,7 @@ def render_add_category_page():
                            teacher_perms=is_teacher())
 
 
+# Delete Category
 @app.route('/delete_category/<cat_id>')
 def render_delete_category_page(cat_id):
     if not is_logged_in():
@@ -365,6 +410,7 @@ def render_delete_category_page(cat_id):
                            teacher_perms=is_teacher())
 
 
+# Confirm Delete Category
 @app.route('/confirm_delete_category/<cat_id>')
 def render_confirm_delete_category_page(cat_id):
     if not is_logged_in():
@@ -383,6 +429,7 @@ def render_confirm_delete_category_page(cat_id):
     return redirect('/?Successfully+removed')
 
 
+# Delete Word
 @app.route('/delete_word/<word_id>')
 def render_delete_word_page(word_id):
     if is_logged_in():
@@ -417,6 +464,7 @@ def render_delete_word_page(word_id):
     return redirect('/?error=Not+logged+in')
 
 
+# Confirm Delete Word
 @app.route('/confirm_delete_word/<word_id>')
 def render_confirm_delete_word_page(word_id):
     if not is_logged_in():
