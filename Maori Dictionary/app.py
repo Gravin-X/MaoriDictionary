@@ -14,10 +14,14 @@ app.secret_key = "sage"
 bcrypt = Bcrypt(app)
 
 
+# Functions
+
 # Creating a connection to the database
 def create_connection(db_file):
     """
-    Create a connection to the sqlite db
+    Create a connection with the database
+    parameter: name of the database file
+    returns: a connection to the file
     """
     try:
         connection = sqlite3.connect(db_file)
@@ -56,8 +60,10 @@ def is_teacher():
 
 
 def category_list():
+    # Connects to the Database
     con = create_connection(DB_NAME)
-    query = "SELECT * FROM categories"
+    query = "SELECT * FROM categories ORDER BY category_names ASC"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query)
     queried_categories = cur.fetchall()
@@ -66,9 +72,11 @@ def category_list():
 
 
 def get_word_data(word_id):
+    # Connects to the Database
     con = create_connection(DB_NAME)
 
     query = "SELECT * FROM words WHERE id = ?"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (word_id,))
     queried_data = cur.fetchall()
@@ -90,9 +98,11 @@ def render_homepage():
 # Full Dictionary
 @app.route('/full_dictionary')
 def render_full_dictionary():
+    # Connects to the Database
     con = create_connection(DB_NAME)
 
     query = "SELECT * FROM words"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query)
     fetched_words = cur.fetchall()
@@ -105,7 +115,7 @@ def render_full_dictionary():
 # Login Route
 @app.route('/login', methods=['GET', 'POST'])
 def render_login_page():
-    # Redirects the user if logged in
+    # Redirects to the homepage, if the user is logged in
     if is_logged_in():
         return redirect('/?error=Already+logged+in')
     # User enters login details
@@ -115,8 +125,10 @@ def render_login_page():
         password = request.form.get('password')
         hashed_password = bcrypt.generate_password_hash(password)
         print(hashed_password)
+        # Connects to the Database
         con = create_connection(DB_NAME)
         query = "SELECT id, first_name, password, teacher FROM user_details WHERE email=?"
+        # Creates a cursor to write the query
         cur = con.cursor()
         cur.execute(query, (email,))
         user_data = cur.fetchall()
@@ -162,7 +174,7 @@ def render_logout_page():
 # Sign Up
 @app.route('/signup', methods=['GET', 'POST'])
 def render_signup_page():
-    # Redirects the user if logged in
+    # Redirects to the homepage, if the user is logged in
     if is_logged_in():
         return redirect('/?error=Already+logged+in')
     # Runs the code if the user submits the form
@@ -192,6 +204,7 @@ def render_signup_page():
         # Builds user data in order to add to the database
         query = "INSERT INTO user_details (first_name, last_name, email, password, teacher) VALUES(?,?,?,?,?)"
 
+        # Creates a cursor to write the query
         cur = con.cursor()
 
         # Executes the query
@@ -219,9 +232,10 @@ def render_signup_page():
 @app.route('/word/<word_id>', methods=['GET', 'POST'])
 def render_word_page(word_id):
     if request.method == 'POST':
+        # Redirects to the homepage, if the user isn't logged in
         if not is_logged_in():
             return redirect('/?error=Not+logged+in')
-
+        # Redirects to the homepage, if the user isn't a teacher
         if not is_teacher():
             return redirect('/?error=Not+teacher')
 
@@ -241,35 +255,23 @@ def render_word_page(word_id):
         year_level = request.form.get('level').strip()
         description = request.form.get('description').strip()
         timestamp = datetime.now()
-        current_timestamp = timestamp.strftime("%Y-%m-%d %X")
-        # category = request.form.get('category')
 
-        year_level = max(0, min(10, int(year_level)))
-
-        # date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
-
+        # Only updates if any values has been changed
         if (word_maori != maori_word) or (word_english != english_translation) or (year_level != word_level) \
                 or (word_desc != description):
 
+            # Connects to the Database
             con = create_connection(DB_NAME)
 
-            query = "UPDATE words SET user_id=?, maori=?, english=?, definition=?, level=?, timestamp=? WHERE id=?"
+            # Collects the new data so the details can be updated
+            query = "UPDATE words SET user_id=?, maori=?, english=?, definition=?, level=?, timestamp=? WHERE id=? "
 
+            # Creates a cursor to write the query
             cur = con.cursor()
 
-            cur.execute(query, (user_id, maori_word, english_translation, description, year_level, current_timestamp,
+            cur.execute(query, (user_id, maori_word, english_translation, description, year_level, timestamp,
                                 word_id))
 
-            # current_datetime = datetime.utcnow()
-            # current_timetuple = current_datetime.utctimetuple()
-            ##current_timestamp = calendar.timegm(current_timetuple)
-            # timestamp = date() #datetime.utcfromtimestamp(int(current_timestamp).strftime('%Y-%m-%d at %H:%M:%S'))
-
-            # try:
-            #    cur.execute(query, (maori_word, english_translation, year_level, description, user_id, timestamp,
-            #                        category, "noimage.png", word_id))
-            # except ValueError:
-            #    return redirect('/')
             # Commits and closes the
             con.commit()
             con.close()
@@ -277,9 +279,11 @@ def render_word_page(word_id):
             return redirect('/word/' + str(word_id) + "?error=Nothing+changed")
         return redirect('/word/' + str(word_id))
     else:
+        # Connects to the Database
         con = create_connection(DB_NAME)
 
         query = "SELECT * FROM words WHERE id = ?"
+        # Creates a cursor to write the query
         cur = con.cursor()
         cur.execute(query, (word_id,))
         queried_data = cur.fetchall()
@@ -292,6 +296,7 @@ def render_word_page(word_id):
         print(author)
 
         query = "SELECT * FROM user_details WHERE id=?"
+        # Creates a cursor to write the query
         cur = con.cursor()
         cur.execute(query, (author,))
         user_list = cur.fetchall()
@@ -304,14 +309,17 @@ def render_word_page(word_id):
 # Category
 @app.route('/category/<cat_id>')
 def render_category_page(cat_id):
+    # Connects to the Database
     con = create_connection(DB_NAME)
 
     query = "SELECT id, category_names, user_created FROM categories WHERE id = ?"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
-    query = "SELECT * FROM words WHERE category_id = ?"
+    query = "SELECT * FROM words WHERE category_id = ? ORDER BY maori ASC"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_words = cur.fetchall()
@@ -325,12 +333,13 @@ def render_category_page(cat_id):
 # Add Word
 @app.route('/add_word', methods=['GET', 'POST'])
 def render_add_word_page():
+    # Redirects to the homepage if the user is not logged in
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
-
+    # Redirects to the homepage if the user is not a teacher
     if not is_teacher():
         return redirect('/?error=Not+teacher')
-
+    # Runs the code if the user adds a new word
     if request.method == 'POST':
         user_id = session.get('user_id')
 
@@ -343,25 +352,47 @@ def render_add_word_page():
 
         year_level = max(0, min(10, int(year_level)))
 
+        # Connects to the database
         con = create_connection(DB_NAME)
 
-        query = "INSERT INTO words (id, maori, english, level, definition, user_id, timestamp, category_id, image) " \
-                "VALUES(NULL,?,?,?,?,?,date(),?,?)"
+        # Checks to see if there are any duplicated words
+        query = "SELECT english FROM words WHERE english=?"
 
         cur = con.cursor()
+        cur.execute(query, (english_translation,))
+        duplicate_words = cur.fetchall()
 
+        # If the length of the list is above zero then it will detect that
+        if len(duplicate_words) > 0:
+            return redirect('/add_word?error=Word+already+exists')
+
+        # Builds the new word data in order to add to the database
+        query = "INSERT INTO words (id, maori, english, level, definition, user_id, timestamp, category_id, image) " \
+                "VALUES(NULL,?,?,?,?,?,?,?,?)"
+
+        # Creates a cursor to write the query
+        cur = con.cursor()
+
+        # Error prevention
         try:
-            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, category,
-                                "noimage.png"))
+            # Executes the query and inserts into the words table
+            cur.execute(query, (maori_word, english_translation, year_level, description, user_id, datetime.now(),
+                                category, "noimage.png"))
         except ValueError:
             return redirect('/')
 
+        # Commit and close database connection
         con.commit()
-
         con.close()
+
         return redirect('/')
 
-    return render_template('add_word.html', logged_in=is_logged_in(),
+    # Displays error to the user
+    error = request.args.get('error')
+    if error is None:
+        error = ""
+
+    return render_template('add_word.html', error=error, logged_in=is_logged_in(),
                            category_list=category_list(), teacher_perms=is_teacher())
 
 
@@ -385,6 +416,7 @@ def render_add_category_page():
         # Builds new category in order to add to the database
         query = "INSERT INTO categories(id, category_names, user_created) VALUES(NULL,?,?)"
 
+        # Creates a cursor to write the query
         cur = con.cursor()
 
         # Error prevention
@@ -397,7 +429,7 @@ def render_add_category_page():
         con.commit()
         con.close()
 
-        # Display error to the user
+    # Display error to the user
     error = request.args.get('error')
     if error is None:
         error = ""
@@ -409,20 +441,24 @@ def render_add_category_page():
 # Delete Category
 @app.route('/delete_category/<cat_id>')
 def render_delete_category_page(cat_id):
+    # Redirects to the homepage, if the user isn't logged in
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
-
+    # Redirects to the homepage, if the user isn't a teacher
     if not is_teacher():
         return redirect('/?error=Not+teacher')
 
+    # Connects to the database
     con = create_connection(DB_NAME)
 
     query = "SELECT id, category_names FROM categories WHERE id = ?"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
     query = "SELECT * FROM words WHERE category_id = ?"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_words = cur.fetchall()
@@ -437,14 +473,17 @@ def render_delete_category_page(cat_id):
 # Confirm Delete Category
 @app.route('/confirm_delete_category/<cat_id>')
 def render_confirm_delete_category_page(cat_id):
+    # Redirects to the homepage, if the user isn't logged in
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
-
+    # Redirects to the homepage, if the user isn't a teacher
     if not is_teacher():
         return redirect('/?error=Not+teacher')
 
+    # Connects to the database
     con = create_connection(DB_NAME)
     query = "DELETE FROM categories WHERE id = ?"
+    # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
 
@@ -460,14 +499,17 @@ def render_delete_word_page(word_id):
         if not is_teacher():
             return redirect('/?error=Not+teacher')
 
+        # Connects to the database
         con = create_connection(DB_NAME)
 
         query = "SELECT id, category_names FROM categories WHERE id = ?"
+        # Creates a cursor to write the query
         cur = con.cursor()
         cur.execute(query, (word_id,))
         fetched_categories = cur.fetchall()
 
         query = "SELECT * FROM words WHERE id = ?"
+        # Creates a cursor to write the query
         cur = con.cursor()
         cur.execute(query, (word_id,))
         fetched_word = cur.fetchall()
@@ -475,6 +517,7 @@ def render_delete_word_page(word_id):
         author = fetched_word[0][1]
 
         query = "SELECT * FROM user_details WHERE id=?"
+        # Creates a cursor to write the query
         cur = con.cursor()
         cur.execute(query, (author,))
         user_list = cur.fetchall()
@@ -491,20 +534,31 @@ def render_delete_word_page(word_id):
 # Confirm Delete Word
 @app.route('/confirm_delete_word/<word_id>')
 def render_confirm_delete_word_page(word_id):
+    # Redirects to the homepage, if the user isn't logged in
     if not is_logged_in():
         return redirect('/?error=Not+logged+in')
 
+    # Redirects to the homepage, if the user isn't a teacher
     if not is_teacher():
         return redirect('/?error=Not+teacher')
 
+    # Connects to the database
     con = create_connection(DB_NAME)
+
+    # Finds words that has the detonated id
     query = "DELETE FROM words WHERE id = ?"
 
+    # Creates a cursor to write the query
     cur = con.cursor()
+
+    # Executes the query and deletes the selected word from the words table
     cur.execute(query, (word_id,))
 
+    # Commit and close database connection
     con.commit()
     con.close()
+
+    # Redirects to the homepage and lets the user know that the word was successfully removed
     return redirect('/?Successfully+removed')
 
 
