@@ -1,4 +1,4 @@
-# Imports stuff
+# Imports modules
 from flask import Flask, render_template, request, session, redirect
 import sqlite3
 from sqlite3 import Error
@@ -105,17 +105,6 @@ def render_full_dictionary():
 # Login Route
 @app.route('/login', methods=['GET', 'POST'])
 def render_login_page():
-    """
-    Route for login page
-
-    User enters login details
-        - checks if they match details in user
-            - if they do then login is successful - session is created
-            -if not then error occurs - redirected to login page
-
-    Returns login.html
-
-    """
     # Redirects the user if logged in
     if is_logged_in():
         return redirect('/?error=Already+logged+in')
@@ -206,7 +195,10 @@ def render_signup_page():
         cur = con.cursor()
 
         # Executes the query
-        cur.execute(query, (fname, lname, email, hashed_password, teacher))  # executes the query
+        try:
+            cur.execute(query, (fname, lname, email, hashed_password, teacher))
+        except sqlite3.IntegrityError:
+            return redirect('/signup?error=Email+is+already+used')
 
         # Commit and close database connection
         con.commit()
@@ -385,7 +377,7 @@ def render_add_category_page():
     # Runs the code if the user adds a new category
     if request.method == "POST":
         print(request.form)
-        name = request.form.get('category_name')
+        name = request.form.get('category_name').strip().title()
 
         # Connects to the database
         con = create_connection(DB_NAME)
@@ -400,7 +392,7 @@ def render_add_category_page():
             # Executes the query and inserts into the category table
             cur.execute(query, (name, 1))
         except sqlite3.IntegrityError:
-            return redirect('/?error=This+category+already+exists')
+            return redirect('?error=This+category+already+exists')
         # Commit and close database connection
         con.commit()
         con.close()
@@ -409,6 +401,7 @@ def render_add_category_page():
     error = request.args.get('error')
     if error is None:
         error = ""
+
     return render_template('add_category.html', error=error, category_list=category_list(), logged_in=is_logged_in(),
                            teacher_perms=is_teacher())
 

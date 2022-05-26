@@ -7,12 +7,13 @@
 <h2>Add Category</h2>
 <form class="dataForm" method="post">
     <div class="form-group">
-        <div class="form-label">Category:</div><br>
-        <div class="form-element"><input id="category_name" name="category_name" type="text" required></div>
+        <div class="form-label">New Category Name: </div><br>
+        <div class="form-element"><input id="category_name" name="category_name" type="text" required MAXLENGTH="20"
+        ></div>
     </div>
 
     <div class="error">{{ error }}</div>
-    <div class="button-group"><input type="submit" value="Add Category">
+    <div class="button-group"><input type="submit" value="Submit">
     </div>
 </form>
 {% endblock %}
