@@ -180,9 +180,9 @@ def render_signup_page():
     # Runs the code if the user submits the form
     if request.method == 'POST':
         print(request.form)
-        fname = request.form.get('fname')
-        lname = request.form.get('lname')
-        email = request.form.get('email')
+        fname = request.form.get('fname').strip().title()
+        lname = request.form.get('lname').strip().title()
+        email = request.form.get('email').strip().lower()
         password = request.form.get('password')
         password2 = request.form.get('password2')
         teacher = request.form.get('teacher')
@@ -344,8 +344,8 @@ def render_add_word_page():
         user_id = session.get('user_id')
 
         print(request.form)
-        maori_word = request.form.get('maori').strip()
-        english_translation = request.form.get('english').strip()
+        maori_word = request.form.get('maori').strip().lower()
+        english_translation = request.form.get('english').strip().lower()
         year_level = request.form.get('level').strip()
         description = request.form.get('description').strip()
         category = request.form.get('category')
@@ -489,7 +489,7 @@ def render_confirm_delete_category_page(cat_id):
 
     con.commit()
     con.close()
-    return redirect('/?Successfully+removed')
+    return redirect('/?Category+successfully+removed')
 
 
 # Delete Word
@@ -559,7 +559,7 @@ def render_confirm_delete_word_page(word_id):
     con.close()
 
     # Redirects to the homepage and lets the user know that the word was successfully removed
-    return redirect('/?Successfully+removed')
+    return redirect('/?Word+successfully+removed')
 
 
 app.run(host='0.0.0.0', debug=True)

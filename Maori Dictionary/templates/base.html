@@ -26,15 +26,16 @@
             <li><a href="/full_dictionary">Full Dictionary</a></li>
             {% if logged_in %}
                 {% if teacher_perms %}
+        <li>--------------------------</li>
                     <li><a href="/add_category">Add Category</a></li>
                     <li><a href="/add_word">Add Word</a></li>
                 {% endif %}
-
+        <li>--------------------------</li>
                 <a href="/logout">Log out</a>
             {% else %}
                 <li><a href="/login">Log in</a></li>
             {% endif %}
-        <li>---------------------</li>
+        <li>--------------------------</li>
             {% for category in category_list %}
             <li><a href="/category/{{ category[0] }}">{{ category[1] }}</a></li>
             {% endfor %}

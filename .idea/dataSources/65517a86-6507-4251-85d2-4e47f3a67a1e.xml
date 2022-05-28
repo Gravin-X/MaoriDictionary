@@ -1416,5 +1416,10 @@
       <RefTableName>user_details</RefTableName>
       <RefColNames>id</RefColNames>
     </foreign-key>
+    <foreign-key id="507" parent="167">
+      <ColNames>category_id</ColNames>
+      <RefTableName>categories</RefTableName>
+      <RefColNames>id</RefColNames>
+    </foreign-key>
   </database-model>
 </dataSource>
