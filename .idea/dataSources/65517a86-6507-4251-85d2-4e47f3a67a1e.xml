@@ -1294,7 +1294,7 @@
     </column>
     <column id="477" parent="163" name="category_names">
       <Position>2</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(30)|0s</DataType>
     </column>
     <column id="478" parent="163" name="user_created">
       <Position>3</Position>
@@ -1342,19 +1342,19 @@
     </column>
     <column id="489" parent="166" name="first_name">
       <Position>2</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(30)|0s</DataType>
     </column>
     <column id="490" parent="166" name="last_name">
       <Position>3</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(30)|0s</DataType>
     </column>
     <column id="491" parent="166" name="email">
       <Position>4</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(50)|0s</DataType>
     </column>
     <column id="492" parent="166" name="password">
       <Position>5</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(70)|0s</DataType>
     </column>
     <column id="493" parent="166" name="teacher">
       <Position>6</Position>
@@ -1385,15 +1385,15 @@
     </column>
     <column id="499" parent="167" name="maori">
       <Position>4</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(30)|0s</DataType>
     </column>
     <column id="500" parent="167" name="english">
       <Position>5</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(30)|0s</DataType>
     </column>
     <column id="501" parent="167" name="definition">
       <Position>6</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(200)|0s</DataType>
     </column>
     <column id="502" parent="167" name="level">
       <Position>7</Position>
@@ -1405,7 +1405,7 @@
     </column>
     <column id="504" parent="167" name="image">
       <Position>9</Position>
-      <DataType>varchar|0s</DataType>
+      <DataType>varchar(100)|0s</DataType>
     </column>
     <key id="505" parent="167">
       <ColNames>id</ColNames>

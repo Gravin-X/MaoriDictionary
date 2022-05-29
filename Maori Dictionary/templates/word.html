@@ -45,7 +45,8 @@
     <form class="dataForm" method="post">
         <div class="form-group">
             <div class="form-label">Maōri Word:</div>
-            <div class="form-element"><input type="text" id="maori" name="maori" value="{{ word_data[0][3] }}" required></div>
+            <div class="form-element"><input type="text" id="maori" name="maori" value="{{ word_data[0][3] }}"
+                                             required></div>
         </div>
 
         <div class="form-group">
@@ -57,7 +58,8 @@
 
         <div class="inline-button">Year Level:</div><br>
         {% for n in range(1, 11) %}
-        <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ n }}" required>
+        <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ n }}"
+               {% if word_data[0][6] == n %} checked="on" {% endif %} required>
         <label for="level{{ n }}">{{ n }}</label>
         {% endfor %}
         <div></div><br>
@@ -65,8 +67,7 @@
         <div class="form-group">
             <div class="form-label">Definition:</div>
             <div class="form-element">
-                <textarea type="text" rows="5" id="description" name="description" required>{{ word_data[0][5] }}
-            </textarea>
+        <textarea type="text" rows="5" id="description" name="description" required>{{ word_data[0][5] }}</textarea>
             </div>
         </div>
 

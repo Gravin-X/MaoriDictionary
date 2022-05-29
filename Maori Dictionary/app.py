@@ -252,10 +252,13 @@ def render_word_page(word_id):
         print(request.form)
         maori_word = request.form.get('maori').strip()
         english_translation = request.form.get('english').strip()
-        year_level = request.form.get('level').strip()
+        year_level = int(request.form.get('level'))
         description = request.form.get('description').strip()
         timestamp = datetime.now()
-
+        print(word_maori)
+        print(word_english)
+        print(word_desc)
+        print(word_level)
         # Only updates if any values has been changed
         if (word_maori != maori_word) or (word_english != english_translation) or (year_level != word_level) \
                 or (word_desc != description):
@@ -289,10 +292,11 @@ def render_word_page(word_id):
         queried_data = cur.fetchall()
 
         print(queried_data)
+        if not queried_data:
+            return redirect('/?error=Word+doesnt+exist')
 
         author = queried_data[0][1]
 
-        print(queried_data)
         print(author)
 
         query = "SELECT * FROM user_details WHERE id=?"
@@ -457,6 +461,9 @@ def render_delete_category_page(cat_id):
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
+    if not fetched_categories:
+        return redirect('/?error=No+such+category')
+
     query = "SELECT * FROM words WHERE category_id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
@@ -513,6 +520,9 @@ def render_delete_word_page(word_id):
         cur = con.cursor()
         cur.execute(query, (word_id,))
         fetched_word = cur.fetchall()
+
+        if not fetched_word:
+            return redirect('/?error=Word+doesnt+exist')
 
         author = fetched_word[0][1]
 
