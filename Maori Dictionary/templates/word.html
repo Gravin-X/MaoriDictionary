@@ -4,79 +4,85 @@
 
 
 {% block main %}
-<h2>{{ word_data[0][3] }} - {{ word_data[0][4] }}
-{% if logged_in and teacher_perms %}
-    <a href="/delete_word/{{ word_data[0][0] }}"> - Delete this word?</a>
-{% endif %}
-</h2>
+    <!-- Displays the word data -->
+    <h2>{{ word_data[0][3] }} - {{ word_data[0][4] }}
+        {% if logged_in and teacher_perms %}
+            <a href="/delete_word/{{ word_data[0][0] }}"> - Delete this word?</a>
+        {% endif %}
+    </h2>
     <table>
         <thead>
-            <tr>
-                <td>Definition:</td>
-                <td>{{ word_data[0][5] }}</td>
-            </tr>
+        <tr>
+            <td>Definition:</td>
+            <td>{{ word_data[0][5] }}</td>
+        </tr>
 
-            <tr>
-                <td>Level:</td>
-                <td>{{ word_data[0][6] }}</td>
-            </tr>
+        <tr>
+            <td>Level:</td>
+            <td>{{ word_data[0][6] }}</td>
+        </tr>
 
-            <tr>
-                <td>Date Added:</td>
-                <td>{{ word_data[0][7] }}</td>
-            </tr>
+        <tr>
+            <td>Date Added:</td>
+            <td>{{ word_data[0][7] }}</td>
+        </tr>
 
-            <tr>
-                <td>Added by:</td>
-                <td>{{ users[0][1] }} {{ users[0][2] }}</td>
-            </tr>
+        <tr>
+            <td>Added by:</td>
+            <td>{{ users[0][1] }} {{ users[0][2] }}</td>
+        </tr>
 
-            <tr>
-                <td></td>
-                <td colspan=“2”><img class = "max"; src="/static/images/{{ word_data[0][8] }}"></td>
-            </tr>
+        <tr>
+            <td></td>
+            <td colspan=“2”><img class="max"  src="/static/images/{{ word_data[0][8] }}"></td>
+        </tr>
         </thead>
     </table>
 
-<br>
+    <br>
 
-{% if logged_in and teacher_perms %}
-    <h2>Edit Word</h2>
-    <form class="dataForm" method="post">
-        <div class="form-group">
-            <div class="form-label">Maōri Word:</div>
-            <div class="form-element"><input type="text" id="maori" name="maori" value="{{ word_data[0][3] }}"
-                                             required></div>
-        </div>
+    <!-- Displays the edit word form -->
 
-        <div class="form-group">
-            <div class="form-label">English Translation:</div>
-            <div class="form-element">
-                <input type="text" id="english" name="english" value="{{ word_data[0][4] }}" required>
+    {% if logged_in and teacher_perms %}
+        <h2>Edit Word</h2>
+        <form class="dataForm" method="post">
+            <div class="form-group">
+                <div class="form-label">Maōri Word:</div>
+                <div class="form-element"><input type="text" id="maori" name="maori" value="{{ word_data[0][3] }}"
+                                                 required></div>
             </div>
-        </div>
 
-        <div class="inline-button">Year Level:</div><br>
-        {% for n in range(1, 11) %}
-        <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ n }}"
-               {% if word_data[0][6] == n %} checked="on" {% endif %} required>
-        <label for="level{{ n }}">{{ n }}</label>
-        {% endfor %}
-        <div></div><br>
-
-        <div class="form-group">
-            <div class="form-label">Definition:</div>
-            <div class="form-element">
-        <textarea type="text" rows="5" id="description" name="description" required>{{ word_data[0][5] }}</textarea>
+            <div class="form-group">
+                <div class="form-label">English Translation:</div>
+                <div class="form-element">
+                    <input type="text" id="english" name="english" value="{{ word_data[0][4] }}" required>
+                </div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <div class="form-label"></div>
-            <div class="form-element"><input type="submit" value="Update Word"></div>
-        </div>
+            <div class="inline-button">Year Level:</div>
+            <br>
+            {% for n in range(1, 11) %}
+                <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ n }}"
+                        {% if word_data[0][6] == n %} checked="on" {% endif %} required>
+                <label for="level{{ n }}">{{ n }}</label>
+            {% endfor %}
+            <div></div>
+            <br>
 
-    </form>
-{% endif %}
+            <div class="form-group">
+                <div class="form-label">Definition:</div>
+                <div class="form-element">
+                    <textarea type="text" rows="5" id="description" name="description"
+                              required>{{ word_data[0][5] }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-label"></div>
+                <div class="form-element"><input type="submit" value="Update Word"></div>
+            </div>
+
+        </form>
+    {% endif %}
 
 {% endblock %}

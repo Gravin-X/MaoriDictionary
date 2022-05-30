@@ -4,55 +4,54 @@
 
 
 {% block main %}
-<h2>Add Word</h2>
-<form class="dataForm" method="post">
-    <div class="form-group">
-        <div class="form-label">Maōri Word:</div>
-        <div class="form-element"><input type="text" id="maori" name="maori" required></div>
-    </div>
-    <br>
-    <div class="form-group">
-        <div class="form-label">English Translation:</div>
-        <div class="form-element"><input type="text" id="english" name="english" required></div>
-    </div>
-    <br>
-
-<!--    <div class="form-group">-->
-<!--        <div class="form-label">Year Level: </div>-->
-<!--        <div class="form-element"><input id="level" name="level" type="number" required></div>-->
-<!--    </div>-->
-
-    <div class="inline-button">Year Level:</div><br>
-       {% for n in range(1, 11) %}
-    <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ n }}" required>
-    <label for="level{{ n }}">{{ n }}</label>
-        {% endfor %}
-    <div></div><br>
-
-    <div class="form-group">
-        <div class="form-label">Definition:</div>
-        <div class="form-element">
-            <textarea type="text" rows="5" id="description" name="description" required></textarea>
+    <!-- Displays the add word form -->
+    <h2>Add Word</h2>
+    <form class="dataForm" method="post">
+        <div class="form-group">
+            <div class="form-label">Maōri Word:</div>
+            <div class="form-element"><input type="text" id="maori" name="maori" required></div>
         </div>
-    </div>
+        <br>
+        <div class="form-group">
+            <div class="form-label">English Translation:</div>
+            <div class="form-element"><input type="text" id="english" name="english" required></div>
+        </div>
+        <br>
 
-    <div class="form-group">
-        <!--        dropdownm-->
-        <label class="form-label" required>Choose a category:</label>
-        <label for="category"></label><select name="category" id="category">
+        <div class="inline-button">Year Level:</div>
+        <br>
+        {% for n in range(1, 11) %}
+            <input type="radio" class="inline-button" id="level{{ n }}" name="level" value="{{ n }}" required>
+            <label for="level{{ n }}">{{ n }}</label>
+        {% endfor %}
+        <div></div>
+        <br>
+
+        <div class="form-group">
+            <div class="form-label">Definition:</div>
+            <div class="form-element">
+                <textarea type="text" rows="5" id="description" name="description" required></textarea>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <!--        dropdownm-->
+            <label class="form-label" required>Choose a category:</label>
+            <label for="category"></label><select name="category" id="category">
             {% for category in category_list %}
-            <option class="form-element" value={{ category[0] }}>{{ category[1] }}</option>
+                <option class="form-element" value={{ category[0] }}>{{ category[1] }}</option>
             {% endfor %}
         </select>
-        <br><br>
-    </div>
+            <br><br>
+        </div>
 
-    <div class="error">{{ error }}</div><br>
+        <div class="error">{{ error }}</div>
+        <br>
 
-    <div class="form-group">
-        <div class="form-label"></div>
-        <div class="form-element"><input type="submit" value="Add Word"></div>
-    </div>
+        <div class="form-group">
+            <div class="form-label"></div>
+            <div class="form-element"><input type="submit" value="Add Word"></div>
+        </div>
 
-</form>
+    </form>
 {% endblock %}

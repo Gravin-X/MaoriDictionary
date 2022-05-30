@@ -4,38 +4,38 @@
 
 
 {% block main %}
-<h2>Delete word {{ word_data[0][4] }}?</h2>
-Are you sure you want to delete this word? <a href="/confirm_delete_word/{{ word_data[0][0] }}">Yes</a> or
+    <!-- Displays the delete word confirmation page -->
+    <h2>Delete word {{ word_data[0][4] }}?</h2>
+    Are you sure you want to delete this word? <a href="/confirm_delete_word/{{ word_data[0][0] }}">Yes</a> or
     <a href="/">No</a>
-<p></p>
-</h2>
+    <p></p>
     <table>
         <thead>
-            <tr>
-                <td>Definition:</td>
-                <td>{{ word_data[0][5] }}</td>
-            </tr>
+        <tr>
+            <td>Definition:</td>
+            <td>{{ word_data[0][5] }}</td>
+        </tr>
 
-            <tr>
-                <td>Level:</td>
-                <td>{{ word_data[0][6] }}</td>
-            </tr>
+        <tr>
+            <td>Level:</td>
+            <td>{{ word_data[0][6] }}</td>
+        </tr>
 
-            <tr>
-                <td>Date Added:</td>
-                <td>{{ word_data[0][7] }}</td>
-            </tr>
+        <tr>
+            <td>Date Added:</td>
+            <td>{{ word_data[0][7] }}</td>
+        </tr>
 
-            <tr>
-                <td>Edited by:</td>
-                <td>{{ users[0][1] }} {{ users[0][2] }}</td>
-                <td></td>
-            </tr>
+        <tr>
+            <td>Edited by:</td>
+            <td>{{ users[0][1] }} {{ users[0][2] }}</td>
+            <td></td>
+        </tr>
 
-            <tr>
-                <td></td>
-                <td colspan=“2”><img class = "max"; src="/static/images/{{ word_data[0][8] }}"></td>
-            </tr>
+        <tr>
+            <td></td>
+            <td colspan=“2”><img class="max" src="/static/images/{{ word_data[0][8] }}"></td>
+        </tr>
         </thead>
     </table>
 {% endblock %}

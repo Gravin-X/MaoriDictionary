@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa&family=Suez+One&display=swap" rel="stylesheet">
     <title>{% block title %}{% endblock %}</title>
-    <meta name="Maori Dictionary" content="Author:R Godakanda, Content: A dictionary to convert maori words to english.">
+    <meta name="Maori Dictionary"
+          content="Author:R Godakanda, Content: A dictionary to convert maori words to english.">
 </head>
 
 <body>
@@ -26,18 +27,18 @@
             <li><a href="/full_dictionary">Full Dictionary</a></li>
             {% if logged_in %}
                 {% if teacher_perms %}
-        <li>--------------------------</li>
+                    <li>--------------------------</li>
                     <li><a href="/add_category">Add Category</a></li>
                     <li><a href="/add_word">Add Word</a></li>
                 {% endif %}
-        <li>--------------------------</li>
+                <li>--------------------------</li>
                 <a href="/logout">Log out</a>
             {% else %}
                 <li><a href="/login">Log in</a></li>
             {% endif %}
-        <li>--------------------------</li>
+            <li>--------------------------</li>
             {% for category in category_list %}
-            <li><a href="/category/{{ category[0] }}">{{ category[1] }}</a></li>
+                <li><a href="/category/{{ category[0] }}">{{ category[1] }}</a></li>
             {% endfor %}
 
 
@@ -52,7 +53,7 @@
     -->
 
     <main>
-        {% block main%}{% endblock %}
+        {% block main %}{% endblock %}
     </main>
 
 

@@ -65,9 +65,11 @@ def category_list():
     """
     # Connects to the Database
     con = create_connection(DB_NAME)
+    # Fetches the categories names
     query = "SELECT * FROM categories ORDER BY category_names ASC"
     # Creates a cursor to write the query
     cur = con.cursor()
+    # Executes the query
     cur.execute(query)
     # Fetches the data
     queried_categories = cur.fetchall()
@@ -81,7 +83,7 @@ def get_word_data(word_id):
     """
     # Connects to the Database
     con = create_connection(DB_NAME)
-
+    # Fetches the word with the passed in id
     query = "SELECT * FROM words WHERE id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
@@ -109,7 +111,7 @@ def render_homepage():
 def render_full_dictionary():
     # Connects to the Database
     con = create_connection(DB_NAME)
-
+    # Fetches all the words
     query = "SELECT * FROM words"
     # Creates a cursor to write the query
     cur = con.cursor()
@@ -140,6 +142,7 @@ def render_login_page():
         print(hashed_password)
         # Connects to the Database
         con = create_connection(DB_NAME)
+        # Finds user data where the email is equal to the entered one
         query = "SELECT id, first_name, password, teacher FROM user_details WHERE email=?"
         # Creates a cursor to write the query
         cur = con.cursor()
@@ -215,7 +218,7 @@ def render_signup_page():
         # Connects to the Database
         con = create_connection(DB_NAME)
 
-        # Builds user data in order to add to the database
+        # Builds the user data in order to add to the database
         query = "INSERT INTO user_details (first_name, last_name, email, password, teacher) VALUES(?,?,?,?,?)"
 
         # Creates a cursor to write the query
@@ -286,7 +289,7 @@ def render_word_page(word_id):
 
             # Creates a cursor to write the query
             cur = con.cursor()
-
+            # Executes the query
             cur.execute(query, (user_id, maori_word, english_translation, description, year_level, timestamp,
                                 word_id))
 
@@ -299,7 +302,7 @@ def render_word_page(word_id):
     else:
         # Connects to the Database
         con = create_connection(DB_NAME)
-
+        # Fetches the word with the passed in id
         query = "SELECT * FROM words WHERE id = ?"
         # Creates a cursor to write the query
         cur = con.cursor()
@@ -313,7 +316,7 @@ def render_word_page(word_id):
         author = queried_data[0][1]
 
         print(author)
-
+        # Gets user data
         query = "SELECT * FROM user_details WHERE id=?"
         # Creates a cursor to write the query
         cur = con.cursor()
@@ -330,12 +333,14 @@ def render_word_page(word_id):
 def render_category_page(cat_id):
     # Connects to the Database
     con = create_connection(DB_NAME)
-
     query = "SELECT id, category_names, user_created FROM categories WHERE id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
+
+    if not fetched_categories:
+        return redirect('/?error=No+such+category')
 
     query = "SELECT * FROM words WHERE category_id = ? ORDER BY maori ASC"
     # Creates a cursor to write the query
@@ -479,9 +484,6 @@ def render_delete_category_page(cat_id):
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
-
-    if not fetched_categories:
-        return redirect('/?error=No+such+category')
 
     query = "SELECT * FROM words WHERE category_id = ?"
     # Creates a cursor to write the query

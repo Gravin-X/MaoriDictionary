@@ -4,29 +4,30 @@
 
 
 {% block main %}
-<h2>Delete category {{ category_data[0][1] }}?</h2>
-Are you sure you want to delete this category? <a href="/confirm_delete_category/{{ category_data[0][0] }}">
+    <!-- Displays the delete category confirmation page -->
+    <h2>Delete category {{ category_data[0][1] }}?</h2>
+    Are you sure you want to delete this category? <a href="/confirm_delete_category/{{ category_data[0][0] }}">
     Yes</a> or <a href="/">No</a>
-<p></p>
-<table class="table">
-    <thead>
+    <p></p>
+    <table class="table">
+        <thead>
         <tr>
             <th>Maori</th>
             <th>English</th>
             <th>Image</th>
         </tr>
-    </thead>
-    <tbody>
-    {% for category_word in category_words %}
-    <tr>
+        </thead>
+        <tbody>
+        {% for category_word in category_words %}
+            <tr>
 
-        <td><a href="/word/{{ category_word [0] }}">{{ category_word[3] }}</a></td>
-        <td><a href="/word/{{ category_word [0] }}">{{ category_word[4] }}</a></td>
-        <td><img src="/static/images/{{ category_word [8] }}"></td>
+                <td><a href="/word/{{ category_word [0] }}">{{ category_word[3] }}</a></td>
+                <td><a href="/word/{{ category_word [0] }}">{{ category_word[4] }}</a></td>
+                <td><img src="/static/images/{{ category_word [8] }}"></td>
 
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
 {% endblock %}
