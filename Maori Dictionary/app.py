@@ -60,25 +60,34 @@ def is_teacher():
 
 
 def category_list():
+    """
+    A function to return all the categories ordered by their alphabetical order
+    """
     # Connects to the Database
     con = create_connection(DB_NAME)
     query = "SELECT * FROM categories ORDER BY category_names ASC"
     # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query)
+    # Fetches the data
     queried_categories = cur.fetchall()
     con.close()
     return queried_categories
 
 
 def get_word_data(word_id):
+    """
+    A function to return all the words
+    """
     # Connects to the Database
     con = create_connection(DB_NAME)
 
     query = "SELECT * FROM words WHERE id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
+    # Executes the query
     cur.execute(query, (word_id,))
+    # Fetches the data
     queried_data = cur.fetchall()
 
     print(queried_data)
@@ -104,7 +113,9 @@ def render_full_dictionary():
     query = "SELECT * FROM words"
     # Creates a cursor to write the query
     cur = con.cursor()
+    # Executes the query
     cur.execute(query)
+    # Fetches the data
     fetched_words = cur.fetchall()
 
     con.close()
@@ -121,8 +132,10 @@ def render_login_page():
     # User enters login details
     if request.method == 'POST':
         print(request.form)
+        # Gets inputted data from the form
         email = request.form.get('email').lower().strip()
         password = request.form.get('password')
+        # Hashes the password
         hashed_password = bcrypt.generate_password_hash(password)
         print(hashed_password)
         # Connects to the Database
@@ -130,7 +143,9 @@ def render_login_page():
         query = "SELECT id, first_name, password, teacher FROM user_details WHERE email=?"
         # Creates a cursor to write the query
         cur = con.cursor()
+        # Executes the query
         cur.execute(query, (email,))
+        # Fetches the data
         user_data = cur.fetchall()
         con.close()
 
@@ -144,7 +159,6 @@ def render_login_page():
             return redirect("/login?error=Email+or+password+is+incorrect")
 
         # Checks and compares the hashed password and entered password
-
         if not bcrypt.check_password_hash(db_password, password):
             return redirect("/login?error=Email+or+password+is+incorrect")
         # Creating Sessions
@@ -250,6 +264,7 @@ def render_word_page(word_id):
         word_level = word_data[0][6]
 
         print(request.form)
+        # Gets the data from the form
         maori_word = request.form.get('maori').strip()
         english_translation = request.form.get('english').strip()
         year_level = int(request.form.get('level'))
@@ -348,6 +363,7 @@ def render_add_word_page():
         user_id = session.get('user_id')
 
         print(request.form)
+        # Gets the data from the add word form
         maori_word = request.form.get('maori').strip().lower()
         english_translation = request.form.get('english').strip().lower()
         year_level = request.form.get('level').strip()
@@ -362,8 +378,11 @@ def render_add_word_page():
         # Checks to see if there are any duplicated words
         query = "SELECT english FROM words WHERE english=?"
 
+        # Creates a cursor to write the query
         cur = con.cursor()
+        # Executes the query
         cur.execute(query, (english_translation,))
+        # Fetches the data
         duplicate_words = cur.fetchall()
 
         # If the length of the list is above zero then it will detect that
