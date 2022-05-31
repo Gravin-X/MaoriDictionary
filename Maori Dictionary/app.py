@@ -92,8 +92,6 @@ def get_word_data(word_id):
     # Fetches the data
     queried_data = cur.fetchall()
 
-    print(queried_data)
-
     con.close()
 
     return queried_data
@@ -133,13 +131,9 @@ def render_login_page():
         return redirect('/?error=Already+logged+in')
     # User enters login details
     if request.method == 'POST':
-        print(request.form)
         # Gets inputted data from the form
         email = request.form.get('email').lower().strip()
         password = request.form.get('password')
-        # Hashes the password
-        hashed_password = bcrypt.generate_password_hash(password)
-        print(hashed_password)
         # Connects to the Database
         con = create_connection(DB_NAME)
         # Finds user data where the email is equal to the entered one
@@ -182,9 +176,7 @@ def render_login_page():
 # Logout Route
 @app.route('/logout')
 def render_logout_page():
-    print(list(session.keys()))
     [session.pop(key) for key in list(session.keys())]
-    print(list(session.keys()))
     return redirect('/?message=See+you+next+time')
 
 
@@ -196,7 +188,6 @@ def render_signup_page():
         return redirect('/?error=Already+logged+in')
     # Runs the code if the user submits the form
     if request.method == 'POST':
-        print(request.form)
         fname = request.form.get('fname').strip().title()
         lname = request.form.get('lname').strip().title()
         email = request.form.get('email').strip().lower()
@@ -209,7 +200,6 @@ def render_signup_page():
             return redirect('/signup?error=Passwords+do+not+match')
         # Checks whether the password is less than 8 characters
         if len(password) < 8:
-            print(password, len(password), len(password) < 8)
             return redirect('/signup?error=Passwords+must+be+at+least+8+characters')
 
         # Hashes the password
@@ -260,23 +250,18 @@ def render_word_page(word_id):
 
         # Current word data
         word_data = get_word_data(word_id)
-
         word_maori = word_data[0][3]
         word_english = word_data[0][4]
         word_desc = word_data[0][5]
         word_level = word_data[0][6]
 
-        print(request.form)
         # Gets the data from the form
         maori_word = request.form.get('maori').strip()
         english_translation = request.form.get('english').strip()
         year_level = int(request.form.get('level'))
         description = request.form.get('description').strip()
         timestamp = datetime.now()
-        print(word_maori)
-        print(word_english)
-        print(word_desc)
-        print(word_level)
+
         # Only updates if any values has been changed
         if (word_maori != maori_word) or (word_english != english_translation) or (year_level != word_level) \
                 or (word_desc != description):
@@ -309,13 +294,12 @@ def render_word_page(word_id):
         cur.execute(query, (word_id,))
         queried_data = cur.fetchall()
 
-        print(queried_data)
+        # Make sure word exists
         if not queried_data:
             return redirect('/?error=Word+doesnt+exist')
 
         author = queried_data[0][1]
 
-        print(author)
         # Gets user data
         query = "SELECT * FROM user_details WHERE id=?"
         # Creates a cursor to write the query
@@ -333,15 +317,17 @@ def render_word_page(word_id):
 def render_category_page(cat_id):
     # Connects to the Database
     con = create_connection(DB_NAME)
+    # Gets category data where id equals cat_id
     query = "SELECT id, category_names, user_created FROM categories WHERE id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
 
+    # Makes sure that the category exists
     if not fetched_categories:
         return redirect('/?error=No+such+category')
-
+    # Gets words data where category_id equals cat_id, ordered in alphabetical order of maori words
     query = "SELECT * FROM words WHERE category_id = ? ORDER BY maori ASC"
     # Creates a cursor to write the query
     cur = con.cursor()
@@ -367,7 +353,6 @@ def render_add_word_page():
     if request.method == 'POST':
         user_id = session.get('user_id')
 
-        print(request.form)
         # Gets the data from the add word form
         maori_word = request.form.get('maori').strip().lower()
         english_translation = request.form.get('english').strip().lower()
@@ -376,6 +361,9 @@ def render_add_word_page():
         category = request.form.get('category')
 
         year_level = max(0, min(10, int(year_level)))
+        # Makes sure that valid data is added to the add word form
+        if maori_word == "" or english_translation == "" or description == "":
+            return redirect('/add_word?error=Please+enter+word+data')
 
         # Connects to the database
         con = create_connection(DB_NAME)
@@ -435,8 +423,11 @@ def render_add_category_page():
         return redirect('/?error=Not+teacher')
     # Runs the code if the user adds a new category
     if request.method == "POST":
-        print(request.form)
         name = request.form.get('category_name').strip().title()
+
+        # Makes sure that valid data is added to the add word form
+        if name == "":
+            return redirect('/add_category?error=Please+enter+a+valid+category+name')
 
         # Connects to the database
         con = create_connection(DB_NAME)
@@ -478,13 +469,13 @@ def render_delete_category_page(cat_id):
 
     # Connects to the database
     con = create_connection(DB_NAME)
-
+    # Gets category data where id equals cat_id
     query = "SELECT id, category_names FROM categories WHERE id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     fetched_categories = cur.fetchall()
-
+    # Gets all the words in the category
     query = "SELECT * FROM words WHERE category_id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
@@ -510,6 +501,7 @@ def render_confirm_delete_category_page(cat_id):
 
     # Connects to the database
     con = create_connection(DB_NAME)
+    # Finds the categories with id to delete it
     query = "DELETE FROM categories WHERE id = ?"
     # Creates a cursor to write the query
     cur = con.cursor()
@@ -529,24 +521,19 @@ def render_delete_word_page(word_id):
 
         # Connects to the database
         con = create_connection(DB_NAME)
-
-        query = "SELECT id, category_names FROM categories WHERE id = ?"
-        # Creates a cursor to write the query
-        cur = con.cursor()
-        cur.execute(query, (word_id,))
-        fetched_categories = cur.fetchall()
-
+        # Finds the word that the user is trying to delete
         query = "SELECT * FROM words WHERE id = ?"
         # Creates a cursor to write the query
         cur = con.cursor()
         cur.execute(query, (word_id,))
         fetched_word = cur.fetchall()
 
+        # Makes sure that the word exists
         if not fetched_word:
             return redirect('/?error=Word+doesnt+exist')
 
         author = fetched_word[0][1]
-
+        # Gets the user details
         query = "SELECT * FROM user_details WHERE id=?"
         # Creates a cursor to write the query
         cur = con.cursor()
@@ -555,7 +542,7 @@ def render_delete_word_page(word_id):
 
         con.close()
 
-        return render_template('delete_word.html', category_data=fetched_categories, category_list=category_list(),
+        return render_template('delete_word.html', category_list=category_list(),
                                logged_in=is_logged_in(), word_data=fetched_word,
                                teacher_perms=is_teacher(), users=user_list)
 
